@@ -1,5 +1,7 @@
 from tkinter import *
 
+from pages import Page
+
 class SidebarButton(Button):
     """An individual sidebar button"""
     def __init__(self, *args, **kwargs):
@@ -7,16 +9,9 @@ class SidebarButton(Button):
 
 class Sidebar(Frame):
     """The sidebar class, containing menu buttons to change pages"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, parent, pages: list[Page], change_page, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
-        button = SidebarButton(self, text="Overview")
-        button.pack(side=TOP)
-
-        courses_label = Label(text="Courses")
-        courses_label.pack(side=TOP)
-
-        course_btn = SidebarButton(self, text="Course 1")
-        course_btn.pack(side=TOP)
-        
-        
+        for i in range(len(pages)):
+            page = pages[i]
+            SidebarButton(self, text=page.page_name, command=lambda index=i: change_page(index)).pack(side=TOP)

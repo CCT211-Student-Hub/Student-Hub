@@ -10,18 +10,26 @@ class App(Tk):
         self.title = "Student Hub"
         self.geometry("800x600")
 
-        self.sidebar = Sidebar(self, bg="red")
+        self.page_frame = Frame(self, bg="blue")
+        self.pages: list[Page] = [
+            OverviewPage(self.page_frame), 
+            CoursePage(self.page_frame, "CCT211"), 
+            CoursePage(self.page_frame, "CCT212")
+        ]
+
+        for page in self.pages:
+            page.grid(row=0, column=0, sticky="nsew")
+
+        self.sidebar = Sidebar(self, self.pages, self.change_page, bg="red")
         self.sidebar.pack(side=LEFT, fill="y")
 
-        self.page_frame = Frame()
-        self.pages = {}
-        for page in (OverviewPage, CoursePage):
-            self.pages[page] = page()
+        self.page_frame.pack(side=RIGHT, expand=True, fill="both")
 
-        self.change_page(OverviewPage)
+        self.change_page(0)
 
-    def change_page(self, page: Page):
-        self.pages[page].tkraise()
+    def change_page(self, page_index):
+        self.pages[page_index].tkraise()
+        print("changing pages:", page_index)
 
 
 
