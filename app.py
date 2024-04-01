@@ -1,16 +1,22 @@
 from tkinter import *
-from sidebar import Sidebar
 
+from models import Sqlite_Db
+from sidebar import Sidebar
 from pages import Page, OverviewPage, CoursePage
 
 class App(Tk):
     """The root application class"""
     def __init__(self):
         super().__init__()
+
+        self.db = Sqlite_Db()
+
         self.title = "Student Hub"
         self.geometry("800x600")
 
         self.page_frame = Frame(self, bg="blue")
+        self.page_frame.db = self.db
+
         self.pages: list[Page] = [
             OverviewPage(self.page_frame), 
             CoursePage(self.page_frame, "CCT211"), 

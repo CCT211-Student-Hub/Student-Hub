@@ -1,9 +1,15 @@
 from tkinter import *
 
+from models import Sqlite_Db, Task
+
 class Page(Frame):
     """An abstract class representing a page. Implemented as an overview page or course page"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, bg="pink")
+    db: Sqlite_Db
+    page_name: str
+
+    def __init__(self, parent, *args, **kwargs):
+        self.db = parent.db
+        super().__init__(parent, *args, **kwargs, bg="pink")
 
         self.page_name = "Page"
 
