@@ -1,5 +1,5 @@
 from tkinter import *
-from models import Sqlite_Db
+from models import Course, Sqlite_Db
 from sidebar import Sidebar
 from pages import Page, OverviewPage, CoursePage, NewCourse
 
@@ -14,14 +14,16 @@ class App(Tk):
         self.geometry("800x600")
 
         self.page_frame = Frame(self, bg="gray88") # changed bg colours
-        self.page_frame.db = self.db
+        self.page_frame.app = self
 
         self.pages: list[Page] = [
             OverviewPage(self.page_frame), 
-            CoursePage(self.page_frame, "CCT211"), 
-            CoursePage(self.page_frame, "CCT212"),
-            NewCourse(self.page_frame)
         ]
+
+        for course in Course.get_all_courses():
+            self.pages.append(CoursePage(self.page_frame, course))
+        
+        self.pages.append(NewCourse(self.page_frame))
 
         for page in self.pages:
             page.grid(row=0, column=0, sticky="nsew")

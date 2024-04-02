@@ -6,7 +6,7 @@ db_path = "student_hub.db"
 
 class Sqlite_Db:
     """A class that handles connections to the database"""
-    cur: sqlite3.Cursor
+    con: sqlite3.Connection
 
     def __init__(self) -> None:
         # connect to db
@@ -34,7 +34,18 @@ class Sqlite_Db:
 
 
 class Task:
-    """A model that represents a task"""
+    """A model that represents a task
+    
+    Instance methods:
+        task.update() - Updates the task
+        task.delete() - Deletes the task
+
+    Static methods:
+        Task.get_task() - Gets a task by task_id
+        Task.get_all_tasks() - Gets all tasks
+        Task.get_tasks_by_course() - Gets all tasks of a given course
+        Task.create_task() - Creates a new task
+    """
     task_id: int
     title: str
     description: str
@@ -107,7 +118,17 @@ class Task:
 
 
 class Course:
-    """A model that represents a course"""
+    """A model that represents a course
+
+    Instance methods:
+        course.update() - Updates the course
+        course.delete() - Deletes the course
+
+    Static methods:
+        Course.get_course() - Gets a course by course_id
+        Course.get_all_courses() - Gets all courses
+        Course.create_course() - Creates a new course
+    """
     course_id: int
     course_name: str
 

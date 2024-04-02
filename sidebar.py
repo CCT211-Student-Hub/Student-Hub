@@ -1,23 +1,21 @@
 from tkinter import *
 
-from models import Sqlite_Db
+# from app import App
 from pages import Page
 
 class SidebarButton(Button):
     """An individual sidebar button"""
-    db: Sqlite_Db
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.db = parent.db
+        self.app = parent.app
 
 class Sidebar(Frame):
     """The sidebar class, containing menu buttons to change pages"""
-    db: Sqlite_Db
 
     def __init__(self, parent, pages: list[Page], change_page, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.db = parent.db
+        self.app = parent
 
         for i in range(len(pages)):
             page = pages[i]
