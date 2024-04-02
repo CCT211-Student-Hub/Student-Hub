@@ -21,14 +21,14 @@ class Sidebar(Frame):
 
         for i in range(len(pages)):
             page = pages[i]
-            SidebarButton(self, text=page.page_name, command=lambda index=i: change_page(index)).pack(side=TOP)
+            SidebarButton(self, text=page.page_name, command=lambda index=i: change_page(index)).pack(side=TOP, fill=X)
     
     def update_pages(self, pages):
-        # update number of courses by clearing, and then repopulating sidebar with updates courses
+        # Clear existing buttons to update sidebar with new course pages
         for widget in self.winfo_children():
             widget.destroy()
 
-        # Add buttons for updated pages
+        # Add buttons for the new pages starting from the current number of buttons
         for i in range(len(pages)):
             page = pages[i]
-            SidebarButton(self, text=page.page_name, command=lambda index=i: self.change_page(index)).pack(side=TOP)
+            SidebarButton(self, text=page.page_name, command=lambda index=i: self.change_page(index)).pack(side=TOP, fill=X)

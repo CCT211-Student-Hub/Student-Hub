@@ -55,6 +55,7 @@ class NewCourse(Page):
         self.cancel = Button(self, text="Cancel", command=self.cancel_creation).grid(row=5, column=1)
     
     def submit_creation(self):
+        """Submits valid user input as a course in the sidebar"""
         from app import App
         app = App()
         user_course = self.course_name_entry.get()
@@ -62,6 +63,7 @@ class NewCourse(Page):
         app.add_page(course_name=user_course)
         
     def cancel_creation(self):
+        """Cancels the 'add new course' function and returns user to overview page"""
         from app import App
         app = App()
         app.change_page(0)

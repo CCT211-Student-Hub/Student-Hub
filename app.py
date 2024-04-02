@@ -29,7 +29,6 @@ class App(Tk):
         self.sidebar = Sidebar(self, self.pages, self.change_page, bg="gray33") # changed bg colours
         self.sidebar.pack(side=LEFT, fill="y")
 
-
         self.page_frame.pack(side=RIGHT, expand=True, fill="both")
         
         self.change_page(0)
@@ -43,6 +42,7 @@ class App(Tk):
         index = len(self.pages) - 1
         new_course_page = CoursePage(self.page_frame, course_name)
         self.pages.insert(index, new_course_page)
+        print("Pages after adding:", [page.page_name for page in self.pages])
             
         self.sidebar.update_pages(self.pages)
         print(f"added new course: {course_name}")
