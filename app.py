@@ -50,6 +50,8 @@ class App(Tk):
         new_course_page = CoursePage(self.page_frame, course_name)
         index = len(self.pages) - 1
         self.pages.insert(index, new_course_page)
+        new_course_page.grid(row=0, column=0, sticky="nsew")
+
         self.sidebar.update_pages(self.pages)
         print(f"added new course: {course_name}")
     
