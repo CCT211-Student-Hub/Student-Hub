@@ -12,11 +12,54 @@ class Page(Frame):
 
     def __init__(self, parent, *args, **kwargs):
         self.app = parent.app
+        self.db = Sqlite_Db()
         super().__init__(parent, *args, **kwargs)
-
         self.page_name = "Page"
+        
         # title font
         self.title_font = tkfont.Font(family='Montserrat', size=18, weight="bold")
+        
+        # frame for holding treeview
+        self.data_frame = Frame(self)
+        self.data_frame.grid(row=2, column=0, sticky="nsew")
+        
+        
+    def display_data(self):
+        """Displays and sets up treeview for course tasks"""
+        # set up the treeview
+        scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
+        scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
+        self.tree = ttk.Treeview(self.data_frame, columns=("task id", "title", "description", "completed", "course_id"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        scrollbary.config(command=self.tree.yview)
+        scrollbary.grid(row=2, column=1, sticky="ns")
+        scrollbarx.config(command=self.tree.xview)
+        scrollbarx.grid(row=3, column=0, columnspan=2, sticky="ew")
+        self.tree.configure(yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        self.tree.heading("task id", text="Task ID", anchor=W)
+        self.tree.heading("title", text="Title", anchor=W)
+        self.tree.heading("description", text="Description", anchor=W)
+        self.tree.heading("completed", text="Completed", anchor=W)
+        self.tree.heading("course_id", text="Course ID", anchor=W)
+        self.tree.column('#0', stretch=NO, minwidth=0, width=0)
+        self.tree.column('#1', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#2', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#3', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#4', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#5', stretch=NO, minwidth=0, width=200)
+        self.tree.grid(row=2, column=0, sticky="nsew")
+        
+    def populate_all_tasks(self):
+        """Populating treeview with tasks from the SQLite Student Hub database"""
+        tasks = Task.get_all_tasks(self.db)
+        for task in tasks:
+            self.tree.insert("", "end", values=(task.task_id, task.title, task.description, task.completed, task.course_id))
+    
+    def populate_by_course(self, course_name):
+        """Populating the treeview with data filtered by the course name of a page"""
+        course_id = Task.find_course_id_by_course_name(self.db, course_name)
+        tasks_by_course_id = Task.get_tasks_by_course(self.db, course_id)
+        for task in tasks_by_course_id:
+            self.tree.insert("", "end", values=(task.task_id, task.title, task.description, task.completed, task.course_id))
 
 class OverviewPage(Page):
     """The page that shows all tasks, sorted by date"""
@@ -24,66 +67,14 @@ class OverviewPage(Page):
         super().__init__(parent, *args, **kwargs)
 
         self.page_name = "Overview"
-        self.label = Label(self, text=self.page_name, font=self.title_font)
+        self.label = Label(self, text=self.page_name, font=self.title_font, anchor="center")
         self.label.grid(row=0, column=0)
-        self.data_frame = Frame(self)
-        self.data_frame.grid(row=2, column=0, sticky="nsew")
         
         self.display_data()
-        self.populate_widgets()
+        self.populate_all_tasks()
 
     def get(self):
         return self.dataentry.get()
-
-    def display_data(self):
-        """Displays and sets up treeview for course tasks"""
-        # set up the treeview
-        scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
-        scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
-        self.tree = ttk.Treeview(self.data_frame, columns=("task id", "title", "description", "completed", "course"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
-        scrollbary.config(command=self.tree.yview)
-        scrollbary.grid(row=2, column=1, sticky="ns")
-        scrollbarx.config(command=self.tree.xview)
-        scrollbarx.grid(row=1, column=0, columnspan=2, sticky="ew")
-        self.tree.heading("task id", text="Task ID", anchor=W)
-        self.tree.heading("title", text="Title", anchor=W)
-        self.tree.heading("description", text="Description", anchor=W)
-        self.tree.heading("completed", text="Completed", anchor=W)
-        self.tree.heading("course", text="Course", anchor=W)
-        self.tree.column('#0', stretch=NO, minwidth=0, width=0)
-        self.tree.column('#1', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#2', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#3', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#4', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#5', stretch=NO, minwidth=0, width=200)
-        self.tree.grid(row=1, column=0, sticky="nsew")
-        
-        # configuring page frame to accomodate the treeview and scrollbars
-        self.data_frame.rowconfigure(0, weight=1) 
-        self.data_frame.columnconfigure(0, weight=1) 
-        
-    def populate_widgets(self):
-        """Populating treeview with data from SQLite Database"""
-        
-        # populate the treeview from student hub database
-        conn = sqlite3.connect("student_hub.db")
-        c = conn.cursor()
-        c.execute("SELECT task_id, title, description, completed, course_id FROM task ORDER BY task_id")
-        task_info = c.fetchall()
-        
-        # fetching data from course table
-        c.execute("SELECT course_id, course_name FROM course ORDER BY course_id")
-        course_info = c.fetchall()
-        
-        # iterating through tasks and replacing course_id with matching course_name
-        for row in task_info:
-            for course in course_info:
-                if row[4] == course[0]:
-                    row = (row[0], row[1], row[2], row[3], course[1])
-                    break
-            self.tree.insert("", "end", values=row) 
-            
-        conn.commit()
 
 class CoursePage(Page):
     """The page that shows all tasks for a given course, sorted by date"""
@@ -92,8 +83,11 @@ class CoursePage(Page):
         super().__init__(parent, *args, **kwargs)
 
         self.page_name = course_name
-        self.label = Label(self, text=self.page_name, font=self.title_font)
+        self.label = Label(self, text=self.page_name, font=self.title_font, anchor="center")
         self.label.grid(row=0, column=0)
+        
+        self.display_data()
+        self.populate_by_course(self.page_name)
 
 class NewCourse(Page):
     """The page that provides form to create a new course"""
@@ -106,11 +100,12 @@ class NewCourse(Page):
         # entry forms for relevant data
         self.course_name = Label(self, text="Course Name").grid(row=3, column=0)
         self.course_name_entry = Entry(self)
-        self.course_name_entry.grid(row=3, column = 1)
+        self.course_name_entry.grid(row=3, column=1)
         
+        # adding buttons to submit/cancel changes
         self.submit = Button(self, text="Submit", command = self.submit_creation).grid(row=5, column = 0)
         self.cancel = Button(self, text="Cancel", command=self.cancel_creation).grid(row=5, column=1)
-            
+        
     def submit_creation(self):
         """Submits valid user input as a course in the sidebar and redirects them to the new course page"""
         user_course = self.course_name_entry.get()
@@ -134,7 +129,4 @@ class NewCourse(Page):
         else:
             # Maintaining entry box to prevent it disappearing after the user selects 
             self.course_name_entry.insert(0, user_course) 
-
             
-
-        

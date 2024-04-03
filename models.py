@@ -102,7 +102,7 @@ class Task:
     def get_tasks_by_course(db: Sqlite_Db, course_id: int) -> list[Task]:
         """Retrieves a user's tasks from a given course id"""
         cur = db.con.cursor()
-        res = cur.execute("SELECT task_id, title, description, completed, course_id FROM task WHERE course_id = ?;", (course_id, ))
+        res = cur.execute("SELECT task_id, title, description, completed, course_id FROM task WHERE course_id = ?;", (course_id,))
         results = res.fetchall()
         tasks = []
         for task in results:
@@ -115,7 +115,14 @@ class Task:
         cur.execute("INSERT INTO task (title, description, completed, course_id) VALUES (?, ?, ?, ?);", (title, description, int(completed), course_id))
         db.con.commit()
         return Task.get_task(db, cur.lastrowid)
-
+    
+    def find_course_id_by_course_name(db:Sqlite_Db, course_name: str):
+        """Retrieves the course id from a given course name"""
+        cur = db.con.cursor()
+        cur.execute("SELECT course_id FROM course WHERE course_name = ?;", (course_name, ))
+        result = cur.fetchone()
+        if result:
+            return result[0]
 
 class Course:
     """A model that represents a course
