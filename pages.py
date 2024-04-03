@@ -53,10 +53,9 @@ class Page(Frame):
         for task in tasks:
             self.tree.insert("", "end", values=(task.task_id, task.title, task.description, task.completed, task.course_id))
     
-    def populate_by_course(self, course_name):
+    def populate_by_course(self, course):
         """Populating the treeview with data filtered by the course name of a page"""
-        course_id = Task.find_course_id_by_course_name(self.db, course_name)
-        tasks_by_course_id = Task.get_tasks_by_course(self.db, course_id)
+        tasks_by_course_id = Task.get_tasks_by_course(self.db, course.course_id)
         for task in tasks_by_course_id:
             self.tree.insert("", "end", values=(task.task_id, task.title, task.description, task.completed, task.course_id))
             
@@ -90,16 +89,17 @@ class OverviewPage(Page):
 
 class CoursePage(Page):
     """The page that shows all tasks for a given course, sorted by date"""
-    def __init__(self, parent, course_name, *args, **kwargs):
+    def __init__(self, parent, course, *args, **kwargs):
         """Takes a `course_name` which is set as the page name"""
         super().__init__(parent, *args, **kwargs)
 
-        self.page_name = course_name
+        self.course = course
+        self.page_name = course.course_name
         self.label = Label(self, text=self.page_name, font=self.title_font, anchor="center")
         self.label.grid(row=0, column=0)
         
         self.display_data()
-        self.populate_by_course(self.page_name)
+        self.populate_by_course(course)
         self.display_task_buttons()
 
 class NewCourse(Page):
@@ -126,8 +126,8 @@ class NewCourse(Page):
             # adapted from https://docs.python.org/3/library/tkinter.messagebox.html
             showerror(title="Error: Empty Course", message="Please enter a course name.")
         else:
-            Course.create_course(self.app.db, course_name=user_course)
-            self.app.add_page(course_name=user_course)
+            course = Course.create_course(self.app.db, user_course)
+            self.app.add_page(course)
             
             # clearing text in entry box adapted from
             # https://www.tutorialspoint.com/how-to-clear-the-entry-widget-after-a-button-is-pressed-in-tkinter

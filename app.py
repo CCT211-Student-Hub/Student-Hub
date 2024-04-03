@@ -25,7 +25,7 @@ class App(Tk):
         ]
 
         for course in Course.get_all_courses(self.db):
-            self.pages.append(CoursePage(self.page_frame, course.course_name))
+            self.pages.append(CoursePage(self.page_frame, course))
         
         self.pages.append(NewCourse(self.page_frame))
 
@@ -44,16 +44,16 @@ class App(Tk):
         self.pages[page_index].tkraise()
         print("changing pages:", page_index)
         
-    def add_page(self, course_name):
-        """Adding a new page and updating sidebar when course is created"""
+    def add_page(self, course):
+        """Adding a new page and updating sidebar when course is created, takes a Course object as input"""
         # indexing the position to ensure insertion comes before the add course button
-        new_course_page = CoursePage(self.page_frame, course_name)
+        new_course_page = CoursePage(self.page_frame, course)
         index = len(self.pages) - 1
         self.pages.insert(index, new_course_page)
         new_course_page.grid(row=0, column=0, sticky="nsew")
 
         self.sidebar.update_pages(self.pages)
-        print(f"added new course: {course_name}")
+        print(f"added new course: {course.course_name}")
     
     def create_menu(self):
         """Creating a menu bar for user to choose from a variety of actions"""
