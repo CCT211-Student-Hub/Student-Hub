@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter.messagebox import *
+
 from models import Course, Sqlite_Db
 from sidebar import Sidebar
 from pages import Page, OverviewPage, CoursePage, NewCourse
@@ -32,7 +33,7 @@ class App(Tk):
         for page in self.pages:
             page.grid(row=0, column=0, sticky="nsew")
 
-        self.sidebar = Sidebar(self, self.pages, self.change_page) # changed bg colours
+        self.sidebar = Sidebar(self, self.pages) # changed bg colours
         self.sidebar.pack(side=LEFT, fill="y")
 
         self.page_frame.pack(side=RIGHT, expand=True, fill="both")
@@ -54,6 +55,17 @@ class App(Tk):
 
         self.sidebar.update_pages(self.pages)
         print(f"added new course: {course.course_name}")
+
+    def delete_page(self, index):
+        """Deletes a page by deleting the course and removing it from the menu"""
+        print("deleting page:", index)
+        page = self.pages[index]
+        if askyesno("Delete Course", f"Are you sure you want to delete course {page.course.course_name}?\n\nThis will also delete all tasks associated with this course."):
+            page.course.delete(self.db)
+            self.pages.pop(index)
+            page.destroy()
+
+            self.sidebar.update_pages(self.pages)
     
     def create_menu(self):
         """Creating a menu bar for user to choose from a variety of actions"""
