@@ -33,3 +33,5 @@ class Sidebar(Frame):
         for i in range(len(pages)):
             page = pages[i]
             SidebarButton(self, text=page.page_name, command=lambda index=i: self.change_page(index)).pack(side=TOP, fill=X)
+            
+            

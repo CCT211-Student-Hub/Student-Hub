@@ -55,15 +55,32 @@ class NewCourse(Page):
         self.cancel = Button(self, text="Cancel", command=self.cancel_creation).grid(row=5, column=1)
             
     def submit_creation(self):
-        """Submits valid user input as a course in the sidebar if entry is not empty"""
+        """Submits valid user input as a course in the sidebar and redirects them to the new course page"""
         user_course = self.course_name_entry.get()
         if len(user_course) == 0:
+            # adapted from https://docs.python.org/3/library/tkinter.messagebox.html
             showerror(title="Error: Empty Course", message="Please enter a course name.")
         else:
             Course.create_course(self.app.db, course_name=user_course)
             self.app.add_page(course_name=user_course)
+            
+            # redirecting user to new page
+            # self.app.change_page(len(self.app.pages)-2)
+            
+            # clearing text in entry box adapted from
+            # https://www.tutorialspoint.com/how-to-clear-the-entry-widget-after-a-button-is-pressed-in-tkinter
+            self.course_name_entry.delete(0, END)
         
     def cancel_creation(self):
-        """Cancels the 'add new course' function and returns user to overview page"""
-        self.app.change_page(0)
+        """Prompts user if they are certain of cancelling course entry."""
+        user_course = self.course_name_entry.get()  # Retaining entry box
+        if askyesno("Verify", "Are you sure you want to cancel course creation?"):
+            showwarning("Yes", "Redirecting you back to course overview.")
+            self.app.change_page(0)
+        else:
+            # Maintaining entry box to prevent it disappearing after the user selects 
+            self.course_name_entry.insert(0, user_course) 
+
+            
+
         
