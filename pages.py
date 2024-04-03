@@ -40,17 +40,22 @@ class OverviewPage(Page):
         # set up the treeview
         scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
         scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
-        self.tree = ttk.Treeview(self.data_frame, columns=("task id", "description", "completed"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        self.tree = ttk.Treeview(self.data_frame, columns=("task id", "title", "description", "completed", "course"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
         scrollbary.config(command=self.tree.yview)
         scrollbary.grid(row=2, column=1, sticky="ns")
         scrollbarx.config(command=self.tree.xview)
         scrollbarx.grid(row=1, column=0, columnspan=2, sticky="ew")
         self.tree.heading("task id", text="Task ID", anchor=W)
+        self.tree.heading("title", text="Title", anchor=W)
         self.tree.heading("description", text="Description", anchor=W)
         self.tree.heading("completed", text="Completed", anchor=W)
+        self.tree.heading("course", text="Course", anchor=W)
         self.tree.column('#0', stretch=NO, minwidth=0, width=0)
         self.tree.column('#1', stretch=NO, minwidth=0, width=200)
         self.tree.column('#2', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#3', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#4', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#5', stretch=NO, minwidth=0, width=200)
         self.tree.grid(row=1, column=0, sticky="nsew")
         
         # configuring page frame to accomodate the treeview and scrollbars
@@ -60,14 +65,25 @@ class OverviewPage(Page):
     def populate_widgets(self):
         """Populating treeview with data from SQLite Database"""
         
-        # populate the treeview from a csv
+        # populate the treeview from student hub database
         conn = sqlite3.connect("student_hub.db")
         c = conn.cursor()
-        c.execute("SELECT task_id, title, description, completed FROM task ORDER BY task_id")
+        c.execute("SELECT task_id, title, description, completed, course_id FROM task ORDER BY task_id")
         task_info = c.fetchall()
         
+        # fetching data from course table
+        c.execute("SELECT course_id, course_name FROM course ORDER BY course_id")
+        course_info = c.fetchall()
+        
+        # iterating through tasks and replacing course_id with matching course_name
         for row in task_info:
-            self.tree.insert("", "end", values=row)  
+            for course in course_info:
+                if row[4] == course[0]:
+                    row = (row[0], row[1], row[2], row[3], course[1])
+                    break
+            self.tree.insert("", "end", values=row) 
+            
+        conn.commit()
 
 class CoursePage(Page):
     """The page that shows all tasks for a given course, sorted by date"""
