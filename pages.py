@@ -1,4 +1,6 @@
 from tkinter import *
+import tkinter.ttk as ttk
+import sqlite3
 from tkinter.messagebox import *
 from tkinter import font as tkfont
 from models import Sqlite_Db, Task, Course
@@ -24,9 +26,48 @@ class OverviewPage(Page):
         self.page_name = "Overview"
         self.label = Label(self, text=self.page_name, font=self.title_font)
         self.label.grid(row=0, column=0)
+        self.data_frame = Frame(self)
+        self.data_frame.grid(row=2, column=0, sticky="nsew")
+        
+        self.display_data()
+        self.populate_widgets()
 
     def get(self):
         return self.dataentry.get()
+
+    def display_data(self):
+        """Displays and sets up treeview for course tasks"""
+        # set up the treeview
+        scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
+        scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
+        self.tree = ttk.Treeview(self.data_frame, columns=("task id", "description", "completed"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        scrollbary.config(command=self.tree.yview)
+        scrollbary.grid(row=2, column=1, sticky="ns")
+        scrollbarx.config(command=self.tree.xview)
+        scrollbarx.grid(row=1, column=0, columnspan=2, sticky="ew")
+        self.tree.heading("task id", text="Task ID", anchor=W)
+        self.tree.heading("description", text="Description", anchor=W)
+        self.tree.heading("completed", text="Completed", anchor=W)
+        self.tree.column('#0', stretch=NO, minwidth=0, width=0)
+        self.tree.column('#1', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#2', stretch=NO, minwidth=0, width=200)
+        self.tree.grid(row=1, column=0, sticky="nsew")
+        
+        # configuring page frame to accomodate the treeview and scrollbars
+        self.data_frame.rowconfigure(0, weight=1) 
+        self.data_frame.columnconfigure(0, weight=1) 
+        
+    def populate_widgets(self):
+        """Populating treeview with data from SQLite Database"""
+        
+        # populate the treeview from a csv
+        conn = sqlite3.connect("student_hub.db")
+        c = conn.cursor()
+        c.execute("SELECT task_id, title, description, completed FROM task ORDER BY task_id")
+        task_info = c.fetchall()
+        
+        for row in task_info:
+            self.tree.insert("", "end", values=row)  
 
 class CoursePage(Page):
     """The page that shows all tasks for a given course, sorted by date"""
@@ -63,9 +104,6 @@ class NewCourse(Page):
         else:
             Course.create_course(self.app.db, course_name=user_course)
             self.app.add_page(course_name=user_course)
-            
-            # redirecting user to new page
-            # self.app.change_page(len(self.app.pages)-2)
             
             # clearing text in entry box adapted from
             # https://www.tutorialspoint.com/how-to-clear-the-entry-widget-after-a-button-is-pressed-in-tkinter
