@@ -12,7 +12,7 @@ class Page(Frame):
 
     def __init__(self, parent, *args, **kwargs):
         self.app = parent.app
-        super().__init__(parent, *args, **kwargs, bg="pink")
+        super().__init__(parent, *args, **kwargs)
 
         self.page_name = "Page"
         # title font

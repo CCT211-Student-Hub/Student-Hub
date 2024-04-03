@@ -12,9 +12,9 @@ class App(Tk):
         self.db = Sqlite_Db()
 
         self.title = "Student Hub"
-        self.geometry("800x600")
+        self.geometry("1150x600")
 
-        self.page_frame = Frame(self, bg="gray88") # changed bg colours
+        self.page_frame = Frame(self, bg="gray33") # changed bg colours
         self.page_frame.app = self
 
         self.pages: list[Page] = [
@@ -29,7 +29,7 @@ class App(Tk):
         for page in self.pages:
             page.grid(row=0, column=0, sticky="nsew")
 
-        self.sidebar = Sidebar(self, self.pages, self.change_page, bg="gray33") # changed bg colours
+        self.sidebar = Sidebar(self, self.pages, self.change_page) # changed bg colours
         self.sidebar.pack(side=LEFT, fill="y")
 
         self.page_frame.pack(side=RIGHT, expand=True, fill="both")
