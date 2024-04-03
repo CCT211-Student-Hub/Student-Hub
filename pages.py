@@ -23,7 +23,6 @@ class Page(Frame):
         self.data_frame = Frame(self)
         self.data_frame.grid(row=2, column=0, sticky="nsew")
         
-        
     def display_data(self):
         """Displays and sets up treeview for course tasks"""
         # set up the treeview
@@ -72,7 +71,6 @@ class Page(Frame):
         self.edit_task_button.pack(side="left", anchor=W)
         self.delete_task_button = Button(self.button_frame, text="Delete Task")
         self.delete_task_button.pack(side="left", anchor=W)
-        
 
 class OverviewPage(Page):
     """The page that shows all tasks, sorted by date"""
@@ -102,6 +100,7 @@ class CoursePage(Page):
         
         self.display_data()
         self.populate_by_course(self.page_name)
+        self.display_task_buttons()
 
 class NewCourse(Page):
     """The page that provides form to create a new course"""
