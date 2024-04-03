@@ -1,5 +1,5 @@
 from tkinter import *
-
+from tkinter.messagebox import *
 from tkinter import font as tkfont
 from models import Sqlite_Db, Task, Course
 
@@ -53,12 +53,15 @@ class NewCourse(Page):
         
         self.submit = Button(self, text="Submit", command = self.submit_creation).grid(row=5, column = 0)
         self.cancel = Button(self, text="Cancel", command=self.cancel_creation).grid(row=5, column=1)
-    
+            
     def submit_creation(self):
-        """Submits valid user input as a course in the sidebar"""
+        """Submits valid user input as a course in the sidebar if entry is not empty"""
         user_course = self.course_name_entry.get()
-        Course.create_course(self.app.db, course_name=user_course)
-        self.app.add_page(course_name=user_course)
+        if len(user_course) == 0:
+            showerror(title="Error: Empty Course", message="Please enter a course name.")
+        else:
+            Course.create_course(self.app.db, course_name=user_course)
+            self.app.add_page(course_name=user_course)
         
     def cancel_creation(self):
         """Cancels the 'add new course' function and returns user to overview page"""
