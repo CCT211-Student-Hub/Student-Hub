@@ -1,10 +1,11 @@
 from tkinter import *
 
 from tkinter import font as tkfont
-from models import Task, Course
+from models import Sqlite_Db, Task, Course
 
 class Page(Frame):
     """An abstract class representing a page. Implemented as an overview page or course page"""
+    db: Sqlite_Db
     page_name: str
 
     def __init__(self, parent, *args, **kwargs):
@@ -29,12 +30,12 @@ class OverviewPage(Page):
 
 class CoursePage(Page):
     """The page that shows all tasks for a given course, sorted by date"""
-    def __init__(self, parent, course, *args, **kwargs):
-        """Takes a Course instance"""
+    def __init__(self, parent, course_name, *args, **kwargs):
+        """Takes a `course_name` which is set as the page name"""
         super().__init__(parent, *args, **kwargs)
 
-        self.course = course
-        self.label = Label(self, text=self.course.course_name, font=self.title_font)
+        self.page_name = course_name
+        self.label = Label(self, text=self.page_name, font=self.title_font)
         self.label.grid(row=0, column=0)
 
 class NewCourse(Page):
@@ -56,7 +57,7 @@ class NewCourse(Page):
     def submit_creation(self):
         """Submits valid user input as a course in the sidebar"""
         user_course = self.course_name_entry.get()
-        Course.create_course(self.app.db, user_course)
+        Course.create_course(self.app.db, course_name=user_course)
         self.app.add_page(course_name=user_course)
         
     def cancel_creation(self):

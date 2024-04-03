@@ -20,8 +20,8 @@ class App(Tk):
             OverviewPage(self.page_frame), 
         ]
 
-        for course in Course.get_all_courses():
-            self.pages.append(CoursePage(self.page_frame, course))
+        for course in Course.get_all_courses(self.db):
+            self.pages.append(CoursePage(self.page_frame, course.course_name))
         
         self.pages.append(NewCourse(self.page_frame))
 
