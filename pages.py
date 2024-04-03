@@ -60,6 +60,19 @@ class Page(Frame):
         tasks_by_course_id = Task.get_tasks_by_course(self.db, course_id)
         for task in tasks_by_course_id:
             self.tree.insert("", "end", values=(task.task_id, task.title, task.description, task.completed, task.course_id))
+            
+    def display_task_buttons(self):
+        """Creating frame to hold buttons to add, edit, and delete tasks"""
+        self.button_frame = Frame(self)
+        self.button_frame.grid(row=3, column=0, sticky="s")
+        
+        self.add_task_button = Button(self.button_frame, text="Add Task")
+        self.add_task_button.pack(side="left", anchor=W)
+        self.edit_task_button = Button(self.button_frame, text="Edit Task")
+        self.edit_task_button.pack(side="left", anchor=W)
+        self.delete_task_button = Button(self.button_frame, text="Delete Task")
+        self.delete_task_button.pack(side="left", anchor=W)
+        
 
 class OverviewPage(Page):
     """The page that shows all tasks, sorted by date"""
@@ -72,6 +85,7 @@ class OverviewPage(Page):
         
         self.display_data()
         self.populate_all_tasks()
+        self.display_task_buttons()
 
     def get(self):
         return self.dataentry.get()

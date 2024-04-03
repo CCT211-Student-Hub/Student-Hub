@@ -13,6 +13,7 @@ class App(Tk):
 
         self.title = "Student Hub"
         self.geometry("1150x600")
+        self.resizable(False, False) # preventing resizing of window
 
         self.page_frame = Frame(self, bg="gray33") # changed bg colours
         self.page_frame.app = self
