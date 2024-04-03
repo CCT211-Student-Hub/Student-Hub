@@ -41,10 +41,9 @@ class App(Tk):
         
     def add_page(self, course_name):
         # indexing the position to ensure insertion comes before the add course button
-        index = len(self.pages) - 1
         new_course_page = CoursePage(self.page_frame, course_name)
+        index = len(self.pages) - 1
         self.pages.insert(index, new_course_page)
-        print("Pages after adding:", [page.page_name for page in self.pages])
             
         self.sidebar.update_pages(self.pages)
         print(f"added new course: {course_name}")

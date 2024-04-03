@@ -18,10 +18,11 @@ class Sidebar(Frame):
     def __init__(self, parent, pages: list[Page], change_page, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.app = parent
+        self.change_page = change_page
         
         for i in range(len(pages)):
             page = pages[i]
-            SidebarButton(self, text=page.page_name, command=lambda index=i: change_page(index)).pack(side=TOP, fill=X)
+            SidebarButton(self, text=page.page_name, command=lambda index=i: self.change_page(index)).pack(side=TOP, fill=X)
     
     def update_pages(self, pages):
         # Clear existing buttons to update sidebar with new course pages
