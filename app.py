@@ -13,7 +13,9 @@ class App(Tk):
 
         self.title = "Student Hub"
         self.geometry("1150x600")
-        self.resizable(False, False) # preventing resizing of window
+        # preventing resizing of window, adapted from 
+        # https://www.tutorialspoint.com/how-can-i-prevent-a-window-from-being-resized-with-tkinter#:~:text=Tkinter%20windows%20can%20be%20resized,resizable(boolean%20value)%20method.
+        self.resizable(False, False)
 
         self.page_frame = Frame(self, bg="gray33") # changed bg colours
         self.page_frame.app = self
