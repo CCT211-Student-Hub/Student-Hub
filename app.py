@@ -14,7 +14,7 @@ class App(Tk):
 
         self.title = "Student Hub"
         self.geometry("1150x600")
-        # preventing resizing of window, adapted from 
+        # Preventing resizing of window, adapted from 
         # https://www.tutorialspoint.com/how-can-i-prevent-a-window-from-being-resized-with-tkinter#:~:text=Tkinter%20windows%20can%20be%20resized,resizable(boolean%20value)%20method.
         self.resizable(False, False)
 
@@ -47,7 +47,7 @@ class App(Tk):
         
     def add_page(self, course):
         """Adding a new page and updating sidebar when course is created, takes a Course object as input"""
-        # indexing the position to ensure insertion comes before the add course button
+        # Indexing the position to ensure insertion comes before the add course button
         new_course_page = CoursePage(self.page_frame, course)
         index = len(self.pages) - 1
         self.pages.insert(index, new_course_page)
@@ -69,15 +69,15 @@ class App(Tk):
     
     def create_menu(self):
         """Creating a menu bar for user to choose from a variety of actions"""
-        # initializing main menu bar
+        # Initializing main menu bar
         menubar = Menu(self)
         main_menu = Menu(menubar, tearoff=0)
         
-        # actions menu
+        # Actions menu
         menubar.add_cascade(label="Actions", menu=main_menu)
         main_menu.add_command(label="Quit", command=self.user_quit)
         
-        # display menu
+        # Display menu
         self.config(menu=menubar)
     
     def user_quit(self):

@@ -16,16 +16,16 @@ class Page(Frame):
         super().__init__(parent, *args, **kwargs)
         self.page_name = "Page"
         
-        # title font
+        # Title font
         self.title_font = tkfont.Font(family='Montserrat', size=18, weight="bold")
         
-        # frame for holding treeview
+        # Frame for holding treeview
         self.data_frame = Frame(self)
         self.data_frame.grid(row=2, column=0, sticky="nsew")
         
     def display_data(self):
         """Displays and sets up treeview for course tasks"""
-        # set up the treeview
+        # Setting up treeview
         scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
         scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
         self.tree = ttk.Treeview(self.data_frame, columns=("task id", "title", "description", "completed", "course_id"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
@@ -110,12 +110,12 @@ class NewCourse(Page):
         self.page_name = "Create New Course"
         self.label = Label(self, text=self.page_name, font=self.title_font).grid(row=0, column=0)
         
-        # entry forms for relevant data
+        # Entry forms for relevant data
         self.course_name = Label(self, text="Course Name").grid(row=3, column=0)
         self.course_name_entry = Entry(self)
         self.course_name_entry.grid(row=3, column=1)
         
-        # adding buttons to submit/cancel changes
+        # Adding buttons to submit/cancel changes
         self.submit = Button(self, text="Submit", command = self.submit_creation).grid(row=5, column = 0)
         self.cancel = Button(self, text="Cancel", command=self.cancel_creation).grid(row=5, column=1)
         
@@ -123,13 +123,13 @@ class NewCourse(Page):
         """Submits valid user input as a course in the sidebar and redirects them to the new course page"""
         user_course = self.course_name_entry.get()
         if len(user_course) == 0:
-            # adapted from https://docs.python.org/3/library/tkinter.messagebox.html
+            # Adapted from https://docs.python.org/3/library/tkinter.messagebox.html
             showerror(title="Error: Empty Course", message="Please enter a course name.")
         else:
             course = Course.create_course(self.app.db, user_course)
             self.app.add_page(course)
             
-            # clearing text in entry box adapted from
+            # Clearing text in entry box adapted from
             # https://www.tutorialspoint.com/how-to-clear-the-entry-widget-after-a-button-is-pressed-in-tkinter
             self.course_name_entry.delete(0, END)
         
