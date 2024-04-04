@@ -45,6 +45,8 @@ class Task:
         Task.get_all_tasks() - Gets all tasks
         Task.get_tasks_by_course() - Gets all tasks of a given course
         Task.create_task() - Creates a new task
+        Task.find_task_id_by_task_title() - Gets task id from a task title
+        Task.get_task_get_completed_by_task_title() - Returns a bool of task completion status
     """
     task_id: int
     title: str
@@ -123,6 +125,22 @@ class Task:
         result = cur.fetchone()
         if result:
             return result[0]
+        
+    def find_task_id_by_task_title(db:Sqlite_Db, course_title: str):
+        """Retrieves task id from given task title"""
+        cur = db.con.cursor()
+        cur.execute("SELECT task_id FROM task WHERE title = ?;", (course_title, ))
+        result = cur.fetchone()
+        if result:
+            return result[0]
+    
+    def get_task_get_completed_by_task_title(db:Sqlite_Db, course_title: str):
+        """Retrieves a boolean of task completion status by task title"""
+        cur = db.con.cursor()
+        cur.execute("SELECT completed FROM task WHERE title = ?;", (course_title, ))
+        result = cur.fetchone()
+        if result:
+            return result[0]
 
 class Course:
     """A model that represents a course
@@ -183,3 +201,4 @@ class Course:
         cur.execute("INSERT INTO course (course_name) VALUES (?);", (course_name,))
         db.con.commit()
         return Course.get_course(db, cur.lastrowid)
+    

@@ -58,6 +58,11 @@ class Page(Frame):
         # storing task information in task variable obtained from student hub database
         self.task = Task.get_task(self.db, self.task_id_values)
         
+        # switching state of edit button to normal if user selects a row in the treeview
+        # state of button adapted from # adapted from https://www.geeksforgeeks.org/how-to-change-tkinter-button-state/
+        if self.task_id:
+            self.edit_task_button.config(state=NORMAL)
+        
     def populate_all_tasks(self):
         """Populating treeview with tasks from the SQLite Student Hub database"""
         tasks = Task.get_all_tasks(self.db)
@@ -77,7 +82,7 @@ class Page(Frame):
         
         self.add_task_button = Button(self.button_frame, text="Add Task", command=self.add_task_button)
         self.add_task_button.pack(side="left", anchor=W)
-        self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_button)
+        self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_button, state=DISABLED)
         self.edit_task_button.pack(side="left", anchor=W)
         self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_button)
         self.delete_task_button.pack(side="left", anchor=W)
@@ -109,50 +114,116 @@ class Page(Frame):
         self.task_completion = Label(self.add_task_frame, text="Completion")
         self.task_completion.grid(row=3, column=0)
         self.complete_var = StringVar()
-        self.complete_var.set("0")
+        self.complete_var.set(int("0"))
         self.task_completion_entry = Entry(self.add_task_frame, textvariable=self.complete_var, state=DISABLED)
         self.task_completion_entry.insert(0, "0") # Adapted from https://www.tutorialspoint.com/how-to-insert-a-temporary-text-in-a-tkinter-entry-widget#:~:text=Use%20the%20insert()%20method,mainloop%20of%20the%20application%20window.
         self.task_completion_entry.grid(row=3, column=1)
 
-        self.task_course_id = Label(self.add_task_frame, text="Course ID")
-        self.task_course_id.grid(row=4, column=0)
-        self.task_course_id_entry = Entry(self.add_task_frame)
-        self.task_course_id_entry.grid(row=4, column=1)
-        
+        self.task_course_name = Label(self.add_task_frame, text="Course Name")
+        self.task_course_name.grid(row=4, column=0)
+        self.task_course_name_entry = Entry(self.add_task_frame)
+        self.task_course_name_entry.grid(row=4, column=1)
+                
         # Adding buttons to submit/cancel changes
         self.submit = Button(self.add_task_frame, text="Submit", command = self.submit_action)
         self.submit.grid(row=5, column = 0)
-        self.cancel = Button(self.add_task_frame, text="Cancel", command=self.cancel_action)
+        self.cancel = Button(self.add_task_frame, text="Cancel", command=lambda: self.cancel_action(self.add_task_frame))
         self.cancel.grid(row=5, column=1)
-    
+        
     def edit_task_button(self):
         """Raises a new frame to display entry boxes to edit task"""
-        self.add_task_frame = Frame(self)
-        self.add_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
-        self.add_task_frame.tkraise()
+        self.edit_task_frame = Frame(self)
+        self.edit_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
+        self.edit_task_frame.tkraise()
         
-        self.label = Label(self.add_task_frame, text="Edit Task", font=self.title_font, anchor="center")
+        self.label = Label(self.edit_task_frame, text="Edit Task", font=self.title_font, anchor="center")
         self.label.grid(row=0, column=0, columnspan=2)
-        print("add task frame uploading...")
+        
+        # Entry forms for relevant data
+        self.task_title = Label(self.edit_task_frame, text="Title")
+        self.task_title.grid(row=1, column=0)
+        self.task_title_entry = Entry(self.edit_task_frame)
+        self.task_title_entry.grid(row=1, column=1)
+        self.task_title_entry.insert(0, self.task_id_data["values"][1])
+        self.task_title_entry.focus() 
+        
+        self.task_desc = Label(self.edit_task_frame, text="Description")
+        self.task_desc.grid(row=2, column=0)
+        self.task_desc_entry = Entry(self.edit_task_frame)
+        self.task_desc_entry.grid(row=2, column=1)
+        self.task_desc_entry.insert(0, self.task_id_data["values"][2])
+
+        self.task_completion = Label(self.edit_task_frame, text="Completion")
+        self.task_completion.grid(row=3, column=0)
+        self.complete_var = StringVar()
+        self.complete_var.set(int("0"))
+        self.task_completion_entry = Entry(self.edit_task_frame, textvariable=self.complete_var)
+        self.task_completion_entry.grid(row=3, column=1)
+
+        self.task_course_name = Label(self.edit_task_frame, text="Course Name")
+        self.task_course_name.grid(row=4, column=0)
+        self.task_course_name_entry = Entry(self.edit_task_frame)
+        self.course_name = Course.get_course(self.db, self.task_id_data["values"][4]).course_name
+        self.task_course_name_entry.insert(0, self.course_name)
+        self.task_course_name_entry.config(state=DISABLED)
+        self.task_course_name_entry.grid(row=4, column=1)
+        
+        self.save_changes = Button(self.edit_task_frame, text="Save", command = self.save_changes)
+        self.save_changes.grid(row=5, column = 0)
+        self.cancel = Button(self.edit_task_frame, text="Cancel", command=lambda: self.cancel_action(self.edit_task_frame))
+        self.cancel.grid(row=5, column=1)
+        
+        print("edit task frame uploading...")
+    
+    def save_changes(self):
+        """Asks user if they are certain of saving the changes"""
+        new_title = self.task_title_entry.get()
+        new_desc = self.task_desc_entry.get()
+        completion_status = False
+        if self.task_completion_entry == 0:
+            completion_status = True
+        course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
+            
+        if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
+            showinfo("Yes", "Changes updated.")
+            updated_task = Task.update(self.db, new_title, new_desc, completion_status, int(course_id))
+            self.tree.insert("", "end", values=(updated_task.task_id, updated_task.title, updated_task.description, updated_task.add_task.completed, updated_task.course_id))
+            self.app.change_page(0)
+            self.edit_task_frame.destroy()
+        else:
+            showinfo("No", "Task has NOT been deleted.")
     
     def delete_task_button(self):
         """Asks user if they are certain of deleting the task"""
         if askyesno("Verify", "Are you sure you want to delete this task? You cannot undo this action."):
-            print("task deleted")
-            
-            showwarning("Yes", "Task Deleted.")
+            showinfo("Yes", "Task Deleted.")
             self.task.delete(self.db)
             self.tree.delete(self.task_id)
         else:
             showinfo("No", "Task has NOT been deleted.")
     
-    def submit_action(self):
-        pass
+    def submit_action(self):    
+        # Obtaining user info    
+        self.title = self.task_title_entry.get()
+        self.description = self.task_desc_entry.get()
+        self.course_name = self.task_course_name_entry.get()
+        
+        # Error handling if user enters a task for a course that doesn't exist
+        course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
+        if course_id is not None:
+            self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id)
+            self.tree.insert("", "end", values=(self.add_task.task_id, self.title, self.description, self.add_task.completed, course_id))
+            showinfo("Task Created", "Task creation success.")
+            self.app.change_page(0)
+            self.add_task_frame.destroy()
+        else:
+            showerror("Error", "Please ensure course/course_id exists before adding a task.")
     
-    def cancel_action(self):
+    def cancel_action(self, frame):
         """Prompts user if they are certain of cancelling task entry."""
         if askyesno("Verify", "Are you sure you want to cancel?"):
-            showwarning("Yes", "Redirecting you back to course overview.")
+            showinfo("Yes", "Redirecting you back to course overview.")
+            frame.destroy()
             self.app.change_page(0)
 
 class OverviewPage(Page):
@@ -221,7 +292,7 @@ class NewCourse(Page):
         """Prompts user if they are certain of cancelling course entry."""
         user_course = self.course_name_entry.get()  # Retaining entry box
         if askyesno("Verify", "Are you sure you want to cancel course creation?"):
-            showwarning("Yes", "Redirecting you back to course overview.")
+            showinfo("Yes", "Redirecting you back to course overview.")
             self.app.change_page(0)
         else:
             # Maintaining entry box to prevent it disappearing after the user selects 
