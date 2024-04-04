@@ -70,6 +70,15 @@ class Page(Frame):
         self.edit_task_button.pack(side="left", anchor=W)
         self.delete_task_button = Button(self.button_frame, text="Delete Task")
         self.delete_task_button.pack(side="left", anchor=W)
+        
+    def add_task_button(self):
+        pass
+    
+    def edit_task_button(self):
+        pass
+    
+    def delete_task_button(self):
+        pass
 
 class OverviewPage(Page):
     """The page that shows all tasks, sorted by date"""
