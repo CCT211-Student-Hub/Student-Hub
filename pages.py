@@ -208,16 +208,17 @@ class Page(Frame):
         self.description = self.task_desc_entry.get()
         self.course_name = self.task_course_name_entry.get()
         
-        # Error handling if user enters a task for a course that doesn't exist
+        # Error handling to ensure user enters in a task for an existing course and a description
+        # less than 56 characters
         course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
-        if course_id is not None:
+        if course_id is not None and len(self.description) <= 56:
             self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id)
             self.tree.insert("", "end", values=(self.add_task.task_id, self.title, self.description, self.add_task.completed, course_id))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
             self.add_task_frame.destroy()
         else:
-            showerror("Error", "Please ensure course/course_id exists before adding a task.")
+            showerror("Error", "Please ensure course/course_id exists before adding a task and that your description is less than 56 characters.")
     
     def cancel_action(self, frame):
         """Prompts user if they are certain of cancelling task entry."""
