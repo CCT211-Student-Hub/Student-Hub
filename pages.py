@@ -45,7 +45,18 @@ class Page(Frame):
         self.tree.column('#3', stretch=NO, minwidth=0, width=200)
         self.tree.column('#4', stretch=NO, minwidth=0, width=200)
         self.tree.column('#5', stretch=NO, minwidth=0, width=200)
+        self.tree.bind('<<TreeviewSelect>>', self.data_selected) # adapted from Bryan Oakley on https://stackoverflow.com/questions/61404261/tkinter-selecting-an-item-from-a-treeview-using-single-click-instead-of-double
         self.tree.grid(row=2, column=0, sticky="nsew")
+    
+    def data_selected(self, event):
+        """Obtain task information from the row selection. Includes task_id, title, description, completed, and course_id"""
+        print("data selected by user")
+        self.task_id = event.widget.selection()[0] # Obtaining task_id (first value in tuple)
+        self.task_id_data = event.widget.item(self.task_id) # Obtaining data from selected task_id
+        self.task_id_values = self.task_id_data["values"][0]
+        
+        # storing task information in task variable obtained from student hub database
+        self.task = Task.get_task(self.db, self.task_id_values)
         
     def populate_all_tasks(self):
         """Populating treeview with tasks from the SQLite Student Hub database"""
@@ -64,21 +75,85 @@ class Page(Frame):
         self.button_frame = Frame(self)
         self.button_frame.grid(row=3, column=0, sticky="s")
         
-        self.add_task_button = Button(self.button_frame, text="Add Task")
+        self.add_task_button = Button(self.button_frame, text="Add Task", command=self.add_task_button)
         self.add_task_button.pack(side="left", anchor=W)
-        self.edit_task_button = Button(self.button_frame, text="Edit Task")
+        self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_button)
         self.edit_task_button.pack(side="left", anchor=W)
-        self.delete_task_button = Button(self.button_frame, text="Delete Task")
+        self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_button)
         self.delete_task_button.pack(side="left", anchor=W)
         
     def add_task_button(self):
-        pass
+        """Raises a new frame to display entry boxes for a new task"""
+        self.add_task_frame = Frame(self)
+        self.add_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
+        self.add_task_frame.tkraise()
+        
+        self.label = Label(self.add_task_frame, text="Add Task", font=self.title_font, anchor="center")
+        self.label.grid(row=0, column=0, columnspan=2)
+        print("add task frame uploading...")
+        
+        # Entry forms for relevant data
+        self.task_title = Label(self.add_task_frame, text="Title")
+        self.task_title.grid(row=1, column=0)
+        self.task_title_entry = Entry(self.add_task_frame)
+        self.task_title_entry.grid(row=1, column=1)
+        self.task_title_entry.focus() # Adapted from user unutbu from https://stackoverflow.com/questions/13626406/setting-focus-to-specific-tkinter-entry-widget 
+        
+        self.task_desc = Label(self.add_task_frame, text="Description")
+        self.task_desc.grid(row=2, column=0)
+        self.task_desc_entry = Entry(self.add_task_frame)
+        self.task_desc_entry.grid(row=2, column=1)
+
+        # Making task completion 0 (bool for False) and read-only to prevent user from entering another value
+        # and because adding a task means that they have yet to complete it, adapted from https://www.geeksforgeeks.org/tkinter-read-only-entry-widget/
+        self.task_completion = Label(self.add_task_frame, text="Completion")
+        self.task_completion.grid(row=3, column=0)
+        self.complete_var = StringVar()
+        self.complete_var.set("0")
+        self.task_completion_entry = Entry(self.add_task_frame, textvariable=self.complete_var, state=DISABLED)
+        self.task_completion_entry.insert(0, "0") # Adapted from https://www.tutorialspoint.com/how-to-insert-a-temporary-text-in-a-tkinter-entry-widget#:~:text=Use%20the%20insert()%20method,mainloop%20of%20the%20application%20window.
+        self.task_completion_entry.grid(row=3, column=1)
+
+        self.task_course_id = Label(self.add_task_frame, text="Course ID")
+        self.task_course_id.grid(row=4, column=0)
+        self.task_course_id_entry = Entry(self.add_task_frame)
+        self.task_course_id_entry.grid(row=4, column=1)
+        
+        # Adding buttons to submit/cancel changes
+        self.submit = Button(self.add_task_frame, text="Submit", command = self.submit_action)
+        self.submit.grid(row=5, column = 0)
+        self.cancel = Button(self.add_task_frame, text="Cancel", command=self.cancel_action)
+        self.cancel.grid(row=5, column=1)
     
     def edit_task_button(self):
-        pass
+        """Raises a new frame to display entry boxes to edit task"""
+        self.add_task_frame = Frame(self)
+        self.add_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
+        self.add_task_frame.tkraise()
+        
+        self.label = Label(self.add_task_frame, text="Edit Task", font=self.title_font, anchor="center")
+        self.label.grid(row=0, column=0, columnspan=2)
+        print("add task frame uploading...")
     
     def delete_task_button(self):
+        """Asks user if they are certain of deleting the task"""
+        if askyesno("Verify", "Are you sure you want to delete this task? You cannot undo this action."):
+            print("task deleted")
+            
+            showwarning("Yes", "Task Deleted.")
+            self.task.delete(self.db)
+            self.tree.delete(self.task_id)
+        else:
+            showinfo("No", "Task has NOT been deleted.")
+    
+    def submit_action(self):
         pass
+    
+    def cancel_action(self):
+        """Prompts user if they are certain of cancelling task entry."""
+        if askyesno("Verify", "Are you sure you want to cancel?"):
+            showwarning("Yes", "Redirecting you back to course overview.")
+            self.app.change_page(0)
 
 class OverviewPage(Page):
     """The page that shows all tasks, sorted by date"""
@@ -150,5 +225,5 @@ class NewCourse(Page):
             self.app.change_page(0)
         else:
             # Maintaining entry box to prevent it disappearing after the user selects 
-            self.course_name_entry.insert(0, user_course) 
+            self.course_name_entry.insert(0, user_course)
             
