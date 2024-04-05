@@ -27,13 +27,9 @@ class Page(Frame):
         """Displays and sets up treeview for course tasks"""
         # Setting up treeview
         scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
-        scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
-        self.tree = ttk.Treeview(self.data_frame, columns=( "title", "description", "completed", "course_id", "priority"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        self.tree = ttk.Treeview(self.data_frame, columns=( "title", "description", "completed", "course_id", "priority"), height=28, selectmode="extended", yscrollcommand=scrollbary.set)
         scrollbary.config(command=self.tree.yview)
         scrollbary.grid(row=2, column=1, sticky="ns")
-        scrollbarx.config(command=self.tree.xview)
-        scrollbarx.grid(row=3, column=0, columnspan=2, sticky="ew")
-        self.tree.configure(yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
         self.tree.heading("title", text="Title", anchor=W)
         self.tree.heading("description", text="Description", anchor=W)
         self.tree.heading("completed", text="Completed", anchor=W)
