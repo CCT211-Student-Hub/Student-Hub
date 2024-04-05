@@ -202,8 +202,11 @@ class Page(Frame):
         new_title = self.task_title_entry.get()
         new_desc = self.task_desc_entry.get()
         completion_status = bool(self.complete_var.get())
+
+        if len(new_desc) <= 35:
+            showinfo("Description Error", "The description must be less than 35 characters.")
             
-        if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action.") and len(new_desc) <= 35:
+        if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
             showinfo("Yes", "Changes updated.")
             self.selected_task.update(self.db, new_title, new_desc, completion_status)
             self.edit_task_frame.destroy()
