@@ -44,7 +44,7 @@ class App(Tk):
     def change_page(self, page_index):
         page = self.pages[page_index]
         page.tkraise()
-        if isinstance(page, Page):
+        if isinstance(page, CoursePage) or isinstance(page, OverviewPage):
             page.edit_task_button.config(state=DISABLED)
             page.delete_task_button.config(state=DISABLED)
             page.tree.delete(*page.tree.get_children())
