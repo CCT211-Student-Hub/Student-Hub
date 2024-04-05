@@ -44,9 +44,9 @@ class App(Tk):
     def change_page(self, page_index):
         page = self.pages[page_index]
         page.tkraise()
-        if type(page) == Page:
+        if isinstance(page, Page):
             page.tree.delete(*page.tree.get_children())
-            if type(page) == CoursePage:
+            if isinstance(page, CoursePage):
                 page.populate_by_course(page.course)
             else:
                 page.populate_all_tasks()

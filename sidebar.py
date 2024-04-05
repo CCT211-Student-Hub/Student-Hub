@@ -14,7 +14,7 @@ class SidebarButton(Button):
 
         self.config(text=page.page_name, command=lambda i=index: self.app.change_page(i))
 
-        if (type(page) == CoursePage):
+        if isinstance(page, CoursePage):
             # Context menu adapted from: https://www.geeksforgeeks.org/right-click-menu-using-tkinter/
             context_menu = Menu(self, tearoff=0)
             context_menu.add_command(label="Delete Course", command=lambda i=index: self.app.delete_page(i))

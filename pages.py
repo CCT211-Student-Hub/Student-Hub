@@ -115,7 +115,7 @@ class Page(Frame):
         self.task_course_name.grid(row=4, column=0)
         self.task_course_selection = StringVar()
         self.task_course_dropdown = OptionMenu(self.add_task_frame, self.task_course_selection, *[course.course_name for course in Course.get_all_courses(self.app.db)])
-        if type(self) == CoursePage:
+        if isinstance(self, CoursePage):
             self.task_course_selection.set(self.course.course_name)
         self.task_course_dropdown.grid(row=4, column=1)
         
