@@ -62,6 +62,7 @@ class Page(Frame):
         # state of button adapted from # adapted from https://www.geeksforgeeks.org/how-to-change-tkinter-button-state/
         if self.task_id:
             self.edit_task_button.config(state=NORMAL)
+            self.delete_task_button.config(state=NORMAL)
         
     def populate_all_tasks(self):
         """Populating treeview with tasks from the SQLite Student Hub database"""
@@ -84,7 +85,7 @@ class Page(Frame):
         self.add_task_button.pack(side="left", anchor=W)
         self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_handler, state=DISABLED)
         self.edit_task_button.pack(side="left", anchor=W)
-        self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_button)
+        self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_button, state=DISABLED)
         self.delete_task_button.pack(side="left", anchor=W)
         
     def add_task_handler(self):
@@ -199,13 +200,12 @@ class Page(Frame):
         self.cancel.grid(row=10, column=1)
         
         print("edit task frame uploading...")
-        print(bool(self.complete_var))
     
     def save_changes(self):
         """Asks user if they are certain of saving the changes"""
         new_title = self.edited_title_entry.get()
         new_desc = self.edited_desc_entry.get()
-        completion_status = self.complete_var
+        completion_status = bool(self.complete_var.get())
         new_priority = self.edited_priority_value.get()
         
         course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
@@ -214,8 +214,8 @@ class Page(Frame):
                 showerror("Description Error", "The description must be less than 52 characters.")
             else:
                 showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
-                self.selected_task.update(self.db, new_title, new_desc, bool(completion_status), course_id, new_priority)
-                self.tree.insert("", "end", values=(new_title, new_desc, Task.get_task(self.db, course_id).completed, self.course_name, self.edited_priority_value.get()))
+                self.selected_task.update(self.db, new_title, new_desc, completion_status, course_id, new_priority)
+                self.tree.insert("", "end", values=(new_title, new_desc, Task.get_task(self.db, course_id).completed, self.course_name, new_priority))
             self.app.change_page(0)
             self.curr_frame.destroy()
         else:
