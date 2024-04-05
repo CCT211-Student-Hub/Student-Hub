@@ -235,7 +235,7 @@ class Page(Frame):
         print(self.title, self.description, 0, course_id, self.priority)
         if course_id is not None and len(self.description) <= 35:
             self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id, self.priority)
-            self.tree.insert("", "end", values=(self.add_task.task_id, self.title, self.description, 0, course_id, self.priority))
+            self.tree.insert("", "end", values=(self.title, self.description, 0, Task.get_task(self.db, course_id).completed, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
             self.add_task_frame.destroy()
