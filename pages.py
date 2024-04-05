@@ -147,36 +147,36 @@ class Page(Frame):
         self.label.grid(row=0, column=0, columnspan=2)
         
         # Entry forms for relevant data
-        self.task_title = Label(self.edit_task_frame, text="Title")
-        self.task_title.grid(row=1, column=0)
-        self.task_title_entry = Entry(self.edit_task_frame)
-        self.task_title_entry.grid(row=1, column=1)
-        self.task_title_entry.insert(0, self.task_id_data["values"][0])
-        self.task_title_entry.focus() 
+        self.edited_title = Label(self.edit_task_frame, text="Title")
+        self.edited_title.grid(row=1, column=0)
+        self.edited_title_entry = Entry(self.edit_task_frame)
+        self.edited_title_entry.grid(row=1, column=1)
+        self.edited_title_entry.insert(0, self.task_id_data["values"][0])
+        self.edited_title_entry.focus() 
         
-        self.task_desc = Label(self.edit_task_frame, text="Description")
-        self.task_desc.grid(row=2, column=0)
-        self.task_desc_entry = Entry(self.edit_task_frame)
-        self.task_desc_entry.grid(row=2, column=1)
-        self.task_desc_entry.insert(0, self.task_id_data["values"][1])
+        self.edited_desc = Label(self.edit_task_frame, text="Description")
+        self.edited_desc.grid(row=2, column=0)
+        self.edited_desc_entry = Entry(self.edit_task_frame)
+        self.edited_desc_entry.grid(row=2, column=1)
+        self.edited_desc_entry.insert(0, self.task_id_data["values"][1])
 
-        self.task_completion = Label(self.edit_task_frame, text="Completion")
-        self.task_completion.grid(row=3, column=0)
+        self.edited_completion = Label(self.edit_task_frame, text="Completion")
+        self.edited_completion.grid(row=3, column=0)
         self.complete_var = IntVar()
         self.complete_var.set(int(self.selected_task.completed))
-        self.task_completion_entry = Checkbutton(self.edit_task_frame, variable=self.complete_var)
-        self.task_completion_entry.grid(row=3, column=1)
+        self.edited_completion_entry = Checkbutton(self.edit_task_frame, variable=self.complete_var)
+        self.edited_completion_entry.grid(row=3, column=1)
 
-        self.task_course_name = Label(self.edit_task_frame, text="Course Name")
-        self.task_course_name.grid(row=4, column=0)
-        self.task_course_name_entry = Entry(self.edit_task_frame)
+        self.edited_course_name = Label(self.edit_task_frame, text="Course Name")
+        self.edited_course_name.grid(row=4, column=0)
+        self.edited_course_name_entry = Entry(self.edit_task_frame)
         self.course_name = self.task_id_data["values"][3]
-        self.task_course_name_entry.insert(0, self.course_name)
-        self.task_course_name_entry.config(state=DISABLED)
-        self.task_course_name_entry.grid(row=4, column=1)
+        self.edited_course_name_entry.insert(0, self.course_name)
+        self.edited_course_name_entry.config(state=DISABLED)
+        self.edited_course_name_entry.grid(row=4, column=1)
         
-        self.task_priority = Label(self.edit_task_frame, text="Task Priority")
-        self.task_priority.grid(row=5, column=0)
+        self.edited_priority = Label(self.edit_task_frame, text="Task Priority")
+        self.edited_priority.grid(row=5, column=0)
         self.task_priority_value = IntVar()
         self.task_priority_value.set(self.task_id_data["values"][4])
         self.task_priority1 = Radiobutton(self.edit_task_frame, text="1", variable=self.task_priority_value, value=1)
@@ -199,19 +199,21 @@ class Page(Frame):
     
     def save_changes(self):
         """Asks user if they are certain of saving the changes"""
-        new_title = self.task_title_entry.get()
-        new_desc = self.task_desc_entry.get()
+        new_title = self.edited_title_entry.get()
+        new_desc = self.edited_desc_entry.get()
         completion_status = bool(self.complete_var.get())
 
-        if len(new_desc) <= 52:
+        if len(new_desc) >= 52:
             showinfo("Description Error", "The description must be less than 35 characters.")
-            
-        if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
-            showinfo("Yes", "Changes updated.")
-            self.selected_task.update(self.db, new_title, new_desc, completion_status)
-            self.edit_task_frame.destroy()
         else:
-            showinfo("No", "Task has NOT been deleted.")
+            if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
+                showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
+                self.selected_task.update(self.db, new_title, new_desc, completion_status)
+                self.tree.insert("", "end", values=(new_title, new_desc, 0, completion_status, self.priority))
+                self.app.change_page(0)
+                self.edit_task_frame.destroy()
+            else:
+                showinfo("No", "Task has NOT been deleted.")
     
     def delete_task_button(self):
         """Asks user if they are certain of deleting the task"""
@@ -228,19 +230,20 @@ class Page(Frame):
         self.description = self.task_desc_entry.get()
         self.course_name = self.task_course_selection.get()
         self.priority = self.task_priority_value.get()
+        print(len(self.description))
         
         # Error handling to ensure user enters in a task for an existing course and a description
         # less than 56 characters
         course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
         print(self.title, self.description, 0, course_id, self.priority)
-        if course_id is not None and len(self.description) <= 35:
+        if (len(self.description) <= 52) and (course_id is not None):
             self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id, self.priority)
             self.tree.insert("", "end", values=(self.title, self.description, 0, Task.get_task(self.db, course_id).completed, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
             self.add_task_frame.destroy()
         else:
-            showerror("Error", "Please ensure course/course_id exists before adding a task and that your description is less than 56 characters.")
+            showerror("Error", "Please ensure your description is less than 56 characters.")
     
     def cancel_action(self, frame):
         """Prompts user if they are certain of cancelling task entry."""
