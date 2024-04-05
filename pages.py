@@ -37,7 +37,7 @@ class Page(Frame):
         self.tree.heading("priority", text="Priority", anchor=W)
         self.tree.column("#0", stretch=NO, minwidth=0, width=0)
         self.tree.column("#1", stretch=NO, minwidth=0, width=200)
-        self.tree.column("#2", stretch=NO, minwidth=0, width=230)
+        self.tree.column("#2", stretch=NO, minwidth=0, width=330)
         self.tree.column("#3", stretch=NO, minwidth=0, width=75)
         self.tree.column("#4", stretch=NO, minwidth=0, width=100)
         self.tree.column("#5", stretch=NO, minwidth=0, width=75)
@@ -203,7 +203,7 @@ class Page(Frame):
         new_desc = self.task_desc_entry.get()
         completion_status = bool(self.complete_var.get())
 
-        if len(new_desc) <= 35:
+        if len(new_desc) <= 52:
             showinfo("Description Error", "The description must be less than 35 characters.")
             
         if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
