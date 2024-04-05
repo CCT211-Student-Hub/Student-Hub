@@ -241,10 +241,9 @@ class Page(Frame):
         # Error handling to ensure user enters in a task for an existing course and a description
         # less than 56 characters
         course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
-        print(self.title, self.description, 0, course_id, self.priority)
         if (len(self.description) <= 52) and (course_id is not None):
             self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id, self.priority)
-            self.tree.insert("", "end", values=(self.title, self.description, Task.get_task(self.db, course_id).completed, self.course_name, self.priority))
+            self.tree.insert("", "end", values=(self.title, self.description, False, self.course_name, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
             self.curr_frame.destroy()
