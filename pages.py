@@ -48,14 +48,15 @@ class Page(Frame):
         """Obtain task information from the row selection. Includes task_id, title, description, completed, and course_id"""
         if not event.widget.selection():
             return
-        print("data selected by user")
         self.task_id = event.widget.selection()[0] # Obtaining task_id (first value in tuple)
         self.task_id_data = event.widget.item(self.task_id) # Obtaining data from selected task_id
         self.task_id_values = self.task_id_data["values"]
+        print("data selected by user")
         print(self.task_id_values)
         
         # storing task information in task variable obtained from student hub database
         self.selected_task = Task.get_task(self.db, self.task_id)
+        print(self.selected_task)
         
         # switching state of edit button to normal if user selects a row in the treeview
         # state of button adapted from # adapted from https://www.geeksforgeeks.org/how-to-change-tkinter-button-state/
@@ -89,7 +90,8 @@ class Page(Frame):
     def add_task_handler(self):
         """Raises a new frame to display entry boxes for a new task"""
         self.add_task_frame = Frame(self)
-        self.add_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
+        self.add_task_frame.grid(row=0, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
+        self.curr_frame = self.add_task_frame
         self.add_task_frame.tkraise()
         
         self.label = Label(self.add_task_frame, text="Add Task", font=self.title_font, anchor="center")
@@ -140,7 +142,8 @@ class Page(Frame):
     def edit_task_handler(self):
         """Raises a new frame to display entry boxes to edit task"""
         self.edit_task_frame = Frame(self)
-        self.edit_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
+        self.edit_task_frame.grid(row=0, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
+        self.curr_frame = self.edit_task_frame
         self.edit_task_frame.tkraise()
         
         self.label = Label(self.edit_task_frame, text="Edit Task", font=self.title_font, anchor="center")
@@ -196,12 +199,13 @@ class Page(Frame):
         self.cancel.grid(row=10, column=1)
         
         print("edit task frame uploading...")
+        print(bool(self.complete_var))
     
     def save_changes(self):
         """Asks user if they are certain of saving the changes"""
         new_title = self.edited_title_entry.get()
         new_desc = self.edited_desc_entry.get()
-        completion_status = int(self.complete_var.get())
+        completion_status = self.complete_var
         new_priority = self.edited_priority_value.get()
         
         course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
@@ -210,10 +214,10 @@ class Page(Frame):
                 showerror("Description Error", "The description must be less than 52 characters.")
             else:
                 showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
-                self.selected_task.update(self.db, new_title, new_desc, completion_status, new_priority)
+                self.selected_task.update(self.db, new_title, new_desc, bool(completion_status), course_id, new_priority)
                 self.tree.insert("", "end", values=(new_title, new_desc, Task.get_task(self.db, course_id).completed, self.course_name, self.edited_priority_value.get()))
             self.app.change_page(0)
-            self.edit_task_frame.destroy()
+            self.curr_frame.destroy()
         else:
             showinfo("No", "Task has NOT been deleted.")
     
@@ -243,7 +247,7 @@ class Page(Frame):
             self.tree.insert("", "end", values=(self.title, self.description, Task.get_task(self.db, course_id).completed, self.course_name, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
-            self.add_task_frame.destroy()
+            self.curr_frame.destroy()
         else:
             showerror("Error", "Please ensure your description is less than 52 characters.")
     
