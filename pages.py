@@ -163,7 +163,7 @@ class Page(Frame):
         self.edited_completion = Label(self.edit_task_frame, text="Completion")
         self.edited_completion.grid(row=3, column=0)
         self.complete_var = IntVar()
-        self.complete_var.set(int(self.selected_task.completed))
+        self.complete_var.set(self.task_id_values[2])
         self.edited_completion_entry = Checkbutton(self.edit_task_frame, variable=self.complete_var)
         self.edited_completion_entry.grid(row=3, column=1)
 
@@ -177,22 +177,22 @@ class Page(Frame):
         
         self.edited_priority = Label(self.edit_task_frame, text="Task Priority")
         self.edited_priority.grid(row=5, column=0)
-        self.task_priority_value = IntVar()
-        self.task_priority_value.set(self.task_id_data["values"][4])
-        self.task_priority1 = Radiobutton(self.edit_task_frame, text="1", variable=self.task_priority_value, value=1)
+        self.edited_priority_value = IntVar()
+        self.edited_priority_value.set(self.task_id_data["values"][4])
+        self.task_priority1 = Radiobutton(self.edit_task_frame, text="1", variable=self.edited_priority_value, value=1)
         self.task_priority1.grid(row=5, column=1)
-        self.task_priority2 = Radiobutton(self.edit_task_frame, text="2", variable=self.task_priority_value, value=2)
+        self.task_priority2 = Radiobutton(self.edit_task_frame, text="2", variable=self.edited_priority_value, value=2)
         self.task_priority2.grid(row=6, column=1)
-        self.task_priority3 = Radiobutton(self.edit_task_frame, text="3", variable=self.task_priority_value, value=3)
+        self.task_priority3 = Radiobutton(self.edit_task_frame, text="3", variable=self.edited_priority_value, value=3)
         self.task_priority3.grid(row=7, column=1)
-        self.task_priority4 = Radiobutton(self.edit_task_frame, text="4", variable=self.task_priority_value, value=4)
+        self.task_priority4 = Radiobutton(self.edit_task_frame, text="4", variable=self.edited_priority_value, value=4)
         self.task_priority4.grid(row=8, column=1)
-        self.task_priority5 = Radiobutton(self.edit_task_frame, text="5", variable=self.task_priority_value, value=5)
+        self.task_priority5 = Radiobutton(self.edit_task_frame, text="5", variable=self.edited_priority_value, value=5)
         self.task_priority5.grid(row=9, column=1)
         
-        self.save_changes_btn = Button(self.edit_task_frame, text="Save", command = self.save_changes)
+        self.save_changes_btn = Button(self.edit_task_frame, text="Save", command = self.save_changes, state=NORMAL)
         self.save_changes_btn.grid(row=10, column = 0)
-        self.cancel = Button(self.edit_task_frame, text="Cancel", command=lambda: self.cancel_action(self.edit_task_frame))
+        self.cancel = Button(self.edit_task_frame, text="Cancel", command=lambda: self.cancel_action(self.edit_task_frame), state=NORMAL)
         self.cancel.grid(row=10, column=1)
         
         print("edit task frame uploading...")
@@ -201,19 +201,21 @@ class Page(Frame):
         """Asks user if they are certain of saving the changes"""
         new_title = self.edited_title_entry.get()
         new_desc = self.edited_desc_entry.get()
-        completion_status = bool(self.complete_var.get())
-
-        if len(new_desc) >= 52:
-            showinfo("Description Error", "The description must be less than 35 characters.")
-        else:
-            if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
-                showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
-                self.selected_task.update(self.db, new_title, new_desc, completion_status)
-                self.tree.insert("", "end", values=(new_title, new_desc, 0, completion_status, self.priority))
-                self.app.change_page(0)
-                self.edit_task_frame.destroy()
+        completion_status = int(self.complete_var.get())
+        new_priority = self.edited_priority_value.get()
+        
+        course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
+        if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
+            if len(new_desc) >= 52:
+                showerror("Description Error", "The description must be less than 52 characters.")
             else:
-                showinfo("No", "Task has NOT been deleted.")
+                showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
+                self.selected_task.update(self.db, new_title, new_desc, completion_status, new_priority)
+                self.tree.insert("", "end", values=(new_title, new_desc, Task.get_task(self.db, course_id).completed, self.course_name, self.edited_priority_value.get()))
+            self.app.change_page(0)
+            self.edit_task_frame.destroy()
+        else:
+            showinfo("No", "Task has NOT been deleted.")
     
     def delete_task_button(self):
         """Asks user if they are certain of deleting the task"""
@@ -238,12 +240,12 @@ class Page(Frame):
         print(self.title, self.description, 0, course_id, self.priority)
         if (len(self.description) <= 52) and (course_id is not None):
             self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id, self.priority)
-            self.tree.insert("", "end", values=(self.title, self.description, 0, Task.get_task(self.db, course_id).completed, self.priority))
+            self.tree.insert("", "end", values=(self.title, self.description, Task.get_task(self.db, course_id).completed, self.course_name, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
             self.add_task_frame.destroy()
         else:
-            showerror("Error", "Please ensure your description is less than 56 characters.")
+            showerror("Error", "Please ensure your description is less than 52 characters.")
     
     def cancel_action(self, frame):
         """Prompts user if they are certain of cancelling task entry."""
