@@ -13,7 +13,7 @@ class App(Tk):
         self.db = Sqlite_Db()
 
         self.title = "Student Hub"
-        self.geometry("850x600")
+        self.geometry("950x600")
         # Preventing resizing of window, adapted from 
         # https://www.tutorialspoint.com/how-can-i-prevent-a-window-from-being-resized-with-tkinter#:~:text=Tkinter%20windows%20can%20be%20resized,resizable(boolean%20value)%20method.
         self.resizable(False, False)
@@ -42,7 +42,14 @@ class App(Tk):
         self.create_menu()
 
     def change_page(self, page_index):
-        self.pages[page_index].tkraise()
+        page = self.pages[page_index]
+        page.tkraise()
+        if type(page) == Page:
+            page.tree.delete(*page.tree.get_children())
+            if type(page) == CoursePage:
+                page.populate_by_course(page.course)
+            else:
+                page.populate_all_tasks()
         print("changing pages:", page_index)
         
     def add_page(self, course):

@@ -52,6 +52,7 @@ class Page(Frame):
         self.task_id = event.widget.selection()[0] # Obtaining task_id (first value in tuple)
         self.task_id_data = event.widget.item(self.task_id) # Obtaining data from selected task_id
         self.task_id_values = self.task_id_data["values"]
+        print(self.task_id_values)
         
         # storing task information in task variable obtained from student hub database
         self.selected_task = Task.get_task(self.db, self.task_id)
@@ -65,13 +66,13 @@ class Page(Frame):
         """Populating treeview with tasks from the SQLite Student Hub database"""
         tasks = Task.get_all_tasks(self.db)
         for task in tasks:
-            self.tree.insert("", "end", task.task_id, values=(task.title, task.description, task.completed, Course.get_course(self.app.db, task.course_id).course_name))
+            self.tree.insert("", "end", task.task_id, values=(task.title, task.description, task.completed, Course.get_course(self.app.db, task.course_id).course_name, task.priority))
     
     def populate_by_course(self, course):
         """Populating the treeview with data filtered by the course name of a page"""
         tasks_by_course_id = Task.get_tasks_by_course(self.db, course.course_id)
         for task in tasks_by_course_id:
-            self.tree.insert("", "end", task.task_id, values=(task.title, task.description, task.completed, course.course_name))
+            self.tree.insert("", "end", task.task_id, values=(task.title, task.description, task.completed, course.course_name, task.priority))
             
     def display_task_buttons(self):
         """Creating frame to hold buttons to add, edit, and delete tasks"""
@@ -177,6 +178,7 @@ class Page(Frame):
         self.task_priority = Label(self.edit_task_frame, text="Task Priority")
         self.task_priority.grid(row=5, column=0)
         self.task_priority_value = IntVar()
+        self.task_priority_value.set(self.task_id_data["values"][4])
         self.task_priority1 = Radiobutton(self.edit_task_frame, text="1", variable=self.task_priority_value, value=1)
         self.task_priority1.grid(row=5, column=1)
         self.task_priority2 = Radiobutton(self.edit_task_frame, text="2", variable=self.task_priority_value, value=2)
@@ -204,11 +206,6 @@ class Page(Frame):
         if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action.") and len(new_desc) <= 35:
             showinfo("Yes", "Changes updated.")
             self.selected_task.update(self.db, new_title, new_desc, completion_status)
-            self.tree.delete(*self.tree.get_children())
-            if type(self) == CoursePage:
-                self.populate_by_course(self.course)
-            else:
-                self.populate_all_tasks()
             self.edit_task_frame.destroy()
         else:
             showinfo("No", "Task has NOT been deleted.")
@@ -227,13 +224,15 @@ class Page(Frame):
         self.title = self.task_title_entry.get()
         self.description = self.task_desc_entry.get()
         self.course_name = self.task_course_selection.get()
+        self.priority = self.task_priority_value.get()
         
         # Error handling to ensure user enters in a task for an existing course and a description
         # less than 56 characters
         course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
+        print(self.title, self.description, 0, course_id, self.priority)
         if course_id is not None and len(self.description) <= 35:
-            self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id)
-            self.tree.insert("", "end", values=(self.add_task.task_id, self.title, self.description, self.add_task.completed, course_id))
+            self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id, self.priority)
+            self.tree.insert("", "end", values=(self.add_task.task_id, self.title, self.description, 0, course_id, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
             self.add_task_frame.destroy()

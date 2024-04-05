@@ -28,6 +28,7 @@ class Sqlite_Db:
                             description TEXT NOT NULL,
                             completed   INTEGER NOT NULL DEFAULT 0,
                             course_id   INTEGER NOT NULL,
+                            priority    INTEGER NOT NULL,
                             FOREIGN KEY (course_id) REFERENCES course (course_id) ON DELETE CASCADE
                         );
                         """)
@@ -53,27 +54,31 @@ class Task:
     description: str
     completed: bool
     course_id: int
+    priority: int
 
-    def __init__(self, task_id: int, title: str, description: str, completed: bool, course_id: int) -> None:
+    def __init__(self, task_id: int, title: str, description: str, completed: bool, course_id: int, priority: int) -> None:
         self.task_id = task_id
         self.title = title
         self.description = description
         self.completed = completed
         self.course_id = course_id
+        self.priority = priority
 
-    def update(self, db: Sqlite_Db, title: str=None, description:str=None, completed:bool=None, course_id:int=None):
+    def update(self, db: Sqlite_Db, title: str=None, description:str=None, completed:bool=None, course_id:int=None, priority: int=None):
         """Update a task that already exists"""
         if title is None: title = self.title
         if description is None: description = self.description
         if completed is None: completed = self.completed
         if course_id is None: course_id = self.course_id
+        if priority is None: priority = self.priority
         cur = db.con.cursor()
-        cur.execute("UPDATE task SET title=?, description=?, completed=?, course_id=? WHERE task_id=?;", (title, description, int(completed), course_id, self.task_id))
+        cur.execute("UPDATE task SET title=?, description=?, completed=?, course_id=?, priority=? WHERE task_id=?;", (title, description, int(completed), course_id, self.task_id, priority))
         db.con.commit()
         self.title = title
         self.description = description
         self.completed = completed
         self.course_id = course_id
+        self.priority = priority
 
     def delete(self, db: Sqlite_Db):
         """Delete a task from the database"""
@@ -84,37 +89,37 @@ class Task:
     def get_task(db: Sqlite_Db, task_id: int) -> Optional[Task]:
         """Retrieves a task by task_id. Returns the task"""
         cur = db.con.cursor()
-        res = cur.execute("SELECT task_id, title, description, completed, course_id FROM task WHERE task_id=?;", (task_id, ))
+        res = cur.execute("SELECT task_id, title, description, completed, course_id, priority FROM task WHERE task_id=?;", (task_id, ))
         result = res.fetchone()
         if result is None:
             return None
-        task = Task(result[0], result[1], result[2], bool(result[3]), result[4])
+        task = Task(result[0], result[1], result[2], bool(result[3]), result[4], result[5])
         return task
         
     def get_all_tasks(db: Sqlite_Db) -> list[Task]:
         """Retrieves a user's tasks. Returns a list of Task objects"""
         cur = db.con.cursor()
-        res = cur.execute("SELECT task_id, title, description, completed, course_id FROM task;")
+        res = cur.execute("SELECT task_id, title, description, completed, course_id, priority FROM task;")
         results = res.fetchall()
         tasks = []
         for task in results:
-            tasks.append(Task(task[0], task[1], task[2], bool(task[3]), task[4]))
+            tasks.append(Task(task[0], task[1], task[2], bool(task[3]), task[4], task[5]))
         return tasks
 
     def get_tasks_by_course(db: Sqlite_Db, course_id: int) -> list[Task]:
         """Retrieves a user's tasks from a given course id"""
         cur = db.con.cursor()
-        res = cur.execute("SELECT task_id, title, description, completed, course_id FROM task WHERE course_id = ?;", (course_id,))
+        res = cur.execute("SELECT task_id, title, description, completed, course_id, priority FROM task WHERE course_id = ?;", (course_id,))
         results = res.fetchall()
         tasks = []
         for task in results:
-            tasks.append(Task(task[0], task[1], task[2], bool(task[3]), task[4]))
+            tasks.append(Task(task[0], task[1], task[2], bool(task[3]), task[4], task[5]))
         return tasks
 
-    def create_task(db: Sqlite_Db, title, description, completed, course_id) -> Task:
+    def create_task(db: Sqlite_Db, title, description, completed, course_id, priority) -> Task:
         """Create a task and enter into database. Returns the task_id of the task"""
         cur = db.con.cursor()
-        cur.execute("INSERT INTO task (title, description, completed, course_id) VALUES (?, ?, ?, ?);", (title, description, int(completed), course_id))
+        cur.execute("INSERT INTO task (title, description, completed, course_id, priority) VALUES (?, ?, ?, ?, ?);", (title, description, int(completed), course_id, priority))
         db.con.commit()
         return Task.get_task(db, cur.lastrowid)
     
