@@ -1,8 +1,8 @@
 from tkinter import *
 import tkinter.ttk as ttk
-import sqlite3
 from tkinter.messagebox import *
 from tkinter import font as tkfont
+
 from models import Sqlite_Db, Task, Course
 
 class Page(Frame):
@@ -28,13 +28,12 @@ class Page(Frame):
         # Setting up treeview
         scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
         scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
-        self.tree = ttk.Treeview(self.data_frame, columns=("task id", "title", "description", "completed", "course_id"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        self.tree = ttk.Treeview(self.data_frame, columns=( "title", "description", "completed", "course_id"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
         scrollbary.config(command=self.tree.yview)
         scrollbary.grid(row=2, column=1, sticky="ns")
         scrollbarx.config(command=self.tree.xview)
         scrollbarx.grid(row=3, column=0, columnspan=2, sticky="ew")
         self.tree.configure(yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
-        self.tree.heading("task id", text="Task ID", anchor=W)
         self.tree.heading("title", text="Title", anchor=W)
         self.tree.heading("description", text="Description", anchor=W)
         self.tree.heading("completed", text="Completed", anchor=W)
@@ -42,21 +41,22 @@ class Page(Frame):
         self.tree.column('#0', stretch=NO, minwidth=0, width=0)
         self.tree.column('#1', stretch=NO, minwidth=0, width=200)
         self.tree.column('#2', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#3', stretch=NO, minwidth=0, width=200)
+        self.tree.column('#3', stretch=NO, minwidth=0, width=75)
         self.tree.column('#4', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#5', stretch=NO, minwidth=0, width=200)
         self.tree.bind('<<TreeviewSelect>>', self.data_selected) # adapted from Bryan Oakley on https://stackoverflow.com/questions/61404261/tkinter-selecting-an-item-from-a-treeview-using-single-click-instead-of-double
         self.tree.grid(row=2, column=0, sticky="nsew")
     
     def data_selected(self, event):
         """Obtain task information from the row selection. Includes task_id, title, description, completed, and course_id"""
+        if not event.widget.selection():
+            return
         print("data selected by user")
         self.task_id = event.widget.selection()[0] # Obtaining task_id (first value in tuple)
         self.task_id_data = event.widget.item(self.task_id) # Obtaining data from selected task_id
-        self.task_id_values = self.task_id_data["values"][0]
+        self.task_id_values = self.task_id_data["values"]
         
         # storing task information in task variable obtained from student hub database
-        self.task = Task.get_task(self.db, self.task_id_values)
+        self.selected_task = Task.get_task(self.db, self.task_id)
         
         # switching state of edit button to normal if user selects a row in the treeview
         # state of button adapted from # adapted from https://www.geeksforgeeks.org/how-to-change-tkinter-button-state/
@@ -67,13 +67,13 @@ class Page(Frame):
         """Populating treeview with tasks from the SQLite Student Hub database"""
         tasks = Task.get_all_tasks(self.db)
         for task in tasks:
-            self.tree.insert("", "end", values=(task.task_id, task.title, task.description, task.completed, task.course_id))
+            self.tree.insert("", "end", task.task_id, values=(task.title, task.description, task.completed, Course.get_course(self.app.db, task.course_id).course_name))
     
     def populate_by_course(self, course):
         """Populating the treeview with data filtered by the course name of a page"""
         tasks_by_course_id = Task.get_tasks_by_course(self.db, course.course_id)
         for task in tasks_by_course_id:
-            self.tree.insert("", "end", values=(task.task_id, task.title, task.description, task.completed, task.course_id))
+            self.tree.insert("", "end", task.task_id, values=(task.title, task.description, task.completed, course.course_name))
             
     def display_task_buttons(self):
         """Creating frame to hold buttons to add, edit, and delete tasks"""
@@ -82,7 +82,7 @@ class Page(Frame):
         
         self.add_task_button = Button(self.button_frame, text="Add Task", command=self.add_task_button)
         self.add_task_button.pack(side="left", anchor=W)
-        self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_button, state=DISABLED)
+        self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_handler, state=DISABLED)
         self.edit_task_button.pack(side="left", anchor=W)
         self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_button)
         self.delete_task_button.pack(side="left", anchor=W)
@@ -109,20 +109,13 @@ class Page(Frame):
         self.task_desc_entry = Entry(self.add_task_frame)
         self.task_desc_entry.grid(row=2, column=1)
 
-        # Making task completion 0 (bool for False) and read-only to prevent user from entering another value
-        # and because adding a task means that they have yet to complete it, adapted from https://www.geeksforgeeks.org/tkinter-read-only-entry-widget/
-        self.task_completion = Label(self.add_task_frame, text="Completion")
-        self.task_completion.grid(row=3, column=0)
-        self.complete_var = StringVar()
-        self.complete_var.set(int("0"))
-        self.task_completion_entry = Entry(self.add_task_frame, textvariable=self.complete_var, state=DISABLED)
-        self.task_completion_entry.insert(0, "0") # Adapted from https://www.tutorialspoint.com/how-to-insert-a-temporary-text-in-a-tkinter-entry-widget#:~:text=Use%20the%20insert()%20method,mainloop%20of%20the%20application%20window.
-        self.task_completion_entry.grid(row=3, column=1)
-
         self.task_course_name = Label(self.add_task_frame, text="Course Name")
         self.task_course_name.grid(row=4, column=0)
-        self.task_course_name_entry = Entry(self.add_task_frame)
-        self.task_course_name_entry.grid(row=4, column=1)
+        self.task_course_selection = StringVar()
+        self.task_course_dropdown = OptionMenu(self.add_task_frame, self.task_course_selection, *[course.course_name for course in Course.get_all_courses(self.app.db)])
+        if type(self) == CoursePage:
+            self.task_course_selection.set(self.course.course_name)
+        self.task_course_dropdown.grid(row=4, column=1)
                 
         # Adding buttons to submit/cancel changes
         self.submit = Button(self.add_task_frame, text="Submit", command = self.submit_action)
@@ -130,7 +123,7 @@ class Page(Frame):
         self.cancel = Button(self.add_task_frame, text="Cancel", command=lambda: self.cancel_action(self.add_task_frame))
         self.cancel.grid(row=5, column=1)
         
-    def edit_task_button(self):
+    def edit_task_handler(self):
         """Raises a new frame to display entry boxes to edit task"""
         self.edit_task_frame = Frame(self)
         self.edit_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
@@ -144,32 +137,32 @@ class Page(Frame):
         self.task_title.grid(row=1, column=0)
         self.task_title_entry = Entry(self.edit_task_frame)
         self.task_title_entry.grid(row=1, column=1)
-        self.task_title_entry.insert(0, self.task_id_data["values"][1])
+        self.task_title_entry.insert(0, self.task_id_data["values"][0])
         self.task_title_entry.focus() 
         
         self.task_desc = Label(self.edit_task_frame, text="Description")
         self.task_desc.grid(row=2, column=0)
         self.task_desc_entry = Entry(self.edit_task_frame)
         self.task_desc_entry.grid(row=2, column=1)
-        self.task_desc_entry.insert(0, self.task_id_data["values"][2])
+        self.task_desc_entry.insert(0, self.task_id_data["values"][1])
 
         self.task_completion = Label(self.edit_task_frame, text="Completion")
         self.task_completion.grid(row=3, column=0)
-        self.complete_var = StringVar()
-        self.complete_var.set(int("0"))
-        self.task_completion_entry = Entry(self.edit_task_frame, textvariable=self.complete_var)
+        self.complete_var = IntVar()
+        self.complete_var.set(int(self.selected_task.completed))
+        self.task_completion_entry = Checkbutton(self.edit_task_frame, variable=self.complete_var)
         self.task_completion_entry.grid(row=3, column=1)
 
         self.task_course_name = Label(self.edit_task_frame, text="Course Name")
         self.task_course_name.grid(row=4, column=0)
         self.task_course_name_entry = Entry(self.edit_task_frame)
-        self.course_name = Course.get_course(self.db, self.task_id_data["values"][4]).course_name
+        self.course_name = self.task_id_data["values"][3]
         self.task_course_name_entry.insert(0, self.course_name)
         self.task_course_name_entry.config(state=DISABLED)
         self.task_course_name_entry.grid(row=4, column=1)
         
-        self.save_changes = Button(self.edit_task_frame, text="Save", command = self.save_changes)
-        self.save_changes.grid(row=5, column = 0)
+        self.save_changes_btn = Button(self.edit_task_frame, text="Save", command = self.save_changes)
+        self.save_changes_btn.grid(row=5, column = 0)
         self.cancel = Button(self.edit_task_frame, text="Cancel", command=lambda: self.cancel_action(self.edit_task_frame))
         self.cancel.grid(row=5, column=1)
         
@@ -179,16 +172,16 @@ class Page(Frame):
         """Asks user if they are certain of saving the changes"""
         new_title = self.task_title_entry.get()
         new_desc = self.task_desc_entry.get()
-        completion_status = False
-        if self.task_completion_entry == 0:
-            completion_status = True
-        course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
+        completion_status = bool(self.complete_var.get())
             
         if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
             showinfo("Yes", "Changes updated.")
-            updated_task = Task.update(self.db, new_title, new_desc, completion_status, int(course_id))
-            self.tree.insert("", "end", values=(updated_task.task_id, updated_task.title, updated_task.description, updated_task.add_task.completed, updated_task.course_id))
-            self.app.change_page(0)
+            self.selected_task.update(self.db, new_title, new_desc, completion_status)
+            self.tree.delete(*self.tree.get_children())
+            if type(self) == CoursePage:
+                self.populate_by_course(self.course)
+            else:
+                self.populate_all_tasks()
             self.edit_task_frame.destroy()
         else:
             showinfo("No", "Task has NOT been deleted.")
@@ -197,7 +190,7 @@ class Page(Frame):
         """Asks user if they are certain of deleting the task"""
         if askyesno("Verify", "Are you sure you want to delete this task? You cannot undo this action."):
             showinfo("Yes", "Task Deleted.")
-            self.task.delete(self.db)
+            self.selected_task.delete(self.db)
             self.tree.delete(self.task_id)
         else:
             showinfo("No", "Task has NOT been deleted.")
@@ -206,7 +199,7 @@ class Page(Frame):
         # Obtaining user info    
         self.title = self.task_title_entry.get()
         self.description = self.task_desc_entry.get()
-        self.course_name = self.task_course_name_entry.get()
+        self.course_name = self.task_course_selection.get()
         
         # Error handling to ensure user enters in a task for an existing course and a description
         # less than 56 characters

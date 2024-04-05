@@ -13,7 +13,7 @@ class App(Tk):
         self.db = Sqlite_Db()
 
         self.title = "Student Hub"
-        self.geometry("1150x600")
+        self.geometry("850x600")
         # Preventing resizing of window, adapted from 
         # https://www.tutorialspoint.com/how-can-i-prevent-a-window-from-being-resized-with-tkinter#:~:text=Tkinter%20windows%20can%20be%20resized,resizable(boolean%20value)%20method.
         self.resizable(False, False)
