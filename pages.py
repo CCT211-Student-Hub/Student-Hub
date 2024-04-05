@@ -82,7 +82,7 @@ class Page(Frame):
         self.add_task_button.pack(side="left", anchor=W)
         self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_handler, state=DISABLED)
         self.edit_task_button.pack(side="left", anchor=W)
-        self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_button, state=DISABLED)
+        self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_hander, state=DISABLED)
         self.delete_task_button.pack(side="left", anchor=W)
         
     def add_task_handler(self):
@@ -218,7 +218,7 @@ class Page(Frame):
         else:
             showinfo("No", "Task has NOT been deleted.")
     
-    def delete_task_button(self):
+    def delete_task_hander(self):
         """Asks user if they are certain of deleting the task"""
         if askyesno("Verify", "Are you sure you want to delete this task? You cannot undo this action."):
             showinfo("Yes", "Task Deleted.")
