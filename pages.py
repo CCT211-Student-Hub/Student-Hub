@@ -28,7 +28,7 @@ class Page(Frame):
         # Setting up treeview
         scrollbary = Scrollbar(self.data_frame, orient=VERTICAL)
         scrollbarx = Scrollbar(self.data_frame, orient=HORIZONTAL)
-        self.tree = ttk.Treeview(self.data_frame, columns=( "title", "description", "completed", "course_id"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
+        self.tree = ttk.Treeview(self.data_frame, columns=( "title", "description", "completed", "course_id", "priority"), height=10, selectmode="extended", yscrollcommand=scrollbary.set, xscrollcommand=scrollbarx.set)
         scrollbary.config(command=self.tree.yview)
         scrollbary.grid(row=2, column=1, sticky="ns")
         scrollbarx.config(command=self.tree.xview)
@@ -38,11 +38,13 @@ class Page(Frame):
         self.tree.heading("description", text="Description", anchor=W)
         self.tree.heading("completed", text="Completed", anchor=W)
         self.tree.heading("course_id", text="Course ID", anchor=W)
-        self.tree.column('#0', stretch=NO, minwidth=0, width=0)
-        self.tree.column('#1', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#2', stretch=NO, minwidth=0, width=200)
-        self.tree.column('#3', stretch=NO, minwidth=0, width=75)
-        self.tree.column('#4', stretch=NO, minwidth=0, width=200)
+        self.tree.heading("priority", text="Priority", anchor=W)
+        self.tree.column("#0", stretch=NO, minwidth=0, width=0)
+        self.tree.column("#1", stretch=NO, minwidth=0, width=200)
+        self.tree.column("#2", stretch=NO, minwidth=0, width=230)
+        self.tree.column("#3", stretch=NO, minwidth=0, width=75)
+        self.tree.column("#4", stretch=NO, minwidth=0, width=100)
+        self.tree.column("#5", stretch=NO, minwidth=0, width=75)
         self.tree.bind('<<TreeviewSelect>>', self.data_selected) # adapted from Bryan Oakley on https://stackoverflow.com/questions/61404261/tkinter-selecting-an-item-from-a-treeview-using-single-click-instead-of-double
         self.tree.grid(row=2, column=0, sticky="nsew")
     
@@ -80,14 +82,14 @@ class Page(Frame):
         self.button_frame = Frame(self)
         self.button_frame.grid(row=3, column=0, sticky="s")
         
-        self.add_task_button = Button(self.button_frame, text="Add Task", command=self.add_task_button)
+        self.add_task_button = Button(self.button_frame, text="Add Task", command=self.add_task_handler)
         self.add_task_button.pack(side="left", anchor=W)
         self.edit_task_button = Button(self.button_frame, text="Edit Task", command=self.edit_task_handler, state=DISABLED)
         self.edit_task_button.pack(side="left", anchor=W)
         self.delete_task_button = Button(self.button_frame, text="Delete Task", command=self.delete_task_button)
         self.delete_task_button.pack(side="left", anchor=W)
         
-    def add_task_button(self):
+    def add_task_handler(self):
         """Raises a new frame to display entry boxes for a new task"""
         self.add_task_frame = Frame(self)
         self.add_task_frame.grid(row=1, column=0, sticky="nsew", rowspan=self.grid_size()[1], columnspan=self.grid_size()[0])
@@ -116,12 +118,27 @@ class Page(Frame):
         if type(self) == CoursePage:
             self.task_course_selection.set(self.course.course_name)
         self.task_course_dropdown.grid(row=4, column=1)
-                
+        
+        # Radio button selection adapted from https://www.tutorialspoint.com/python/tk_radiobutton.htm
+        self.task_priority = Label(self.add_task_frame, text="Task Priority")
+        self.task_priority.grid(row=5, column=0)
+        self.task_priority_value = IntVar()
+        self.task_priority1 = Radiobutton(self.add_task_frame, text="1", variable=self.task_priority_value, value=1)
+        self.task_priority1.grid(row=5, column=1)
+        self.task_priority2 = Radiobutton(self.add_task_frame, text="2", variable=self.task_priority_value, value=2)
+        self.task_priority2.grid(row=6, column=1)
+        self.task_priority3 = Radiobutton(self.add_task_frame, text="3", variable=self.task_priority_value, value=3)
+        self.task_priority3.grid(row=7, column=1)
+        self.task_priority4 = Radiobutton(self.add_task_frame, text="4", variable=self.task_priority_value, value=4)
+        self.task_priority4.grid(row=8, column=1)
+        self.task_priority5 = Radiobutton(self.add_task_frame, text="5", variable=self.task_priority_value, value=5)
+        self.task_priority5.grid(row=9, column=1)
+
         # Adding buttons to submit/cancel changes
         self.submit = Button(self.add_task_frame, text="Submit", command = self.submit_action)
-        self.submit.grid(row=5, column = 0)
+        self.submit.grid(row=12, column = 0)
         self.cancel = Button(self.add_task_frame, text="Cancel", command=lambda: self.cancel_action(self.add_task_frame))
-        self.cancel.grid(row=5, column=1)
+        self.cancel.grid(row=12, column=1)
         
     def edit_task_handler(self):
         """Raises a new frame to display entry boxes to edit task"""
@@ -161,10 +178,24 @@ class Page(Frame):
         self.task_course_name_entry.config(state=DISABLED)
         self.task_course_name_entry.grid(row=4, column=1)
         
+        self.task_priority = Label(self.add_task_frame, text="Task Priority")
+        self.task_priority.grid(row=5, column=0)
+        self.task_priority_value = IntVar()
+        self.task_priority1 = Radiobutton(self.add_task_frame, text="1", variable=self.task_priority_value, value=1)
+        self.task_priority1.grid(row=5, column=1)
+        self.task_priority2 = Radiobutton(self.add_task_frame, text="2", variable=self.task_priority_value, value=2)
+        self.task_priority2.grid(row=6, column=1)
+        self.task_priority3 = Radiobutton(self.add_task_frame, text="3", variable=self.task_priority_value, value=3)
+        self.task_priority3.grid(row=7, column=1)
+        self.task_priority4 = Radiobutton(self.add_task_frame, text="4", variable=self.task_priority_value, value=4)
+        self.task_priority4.grid(row=8, column=1)
+        self.task_priority5 = Radiobutton(self.add_task_frame, text="5", variable=self.task_priority_value, value=5)
+        self.task_priority5.grid(row=9, column=1)
+        
         self.save_changes_btn = Button(self.edit_task_frame, text="Save", command = self.save_changes)
-        self.save_changes_btn.grid(row=5, column = 0)
+        self.save_changes_btn.grid(row=12, column = 0)
         self.cancel = Button(self.edit_task_frame, text="Cancel", command=lambda: self.cancel_action(self.edit_task_frame))
-        self.cancel.grid(row=5, column=1)
+        self.cancel.grid(row=12, column=1)
         
         print("edit task frame uploading...")
     
@@ -174,7 +205,7 @@ class Page(Frame):
         new_desc = self.task_desc_entry.get()
         completion_status = bool(self.complete_var.get())
             
-        if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
+        if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action.") and len(new_desc) <= 35:
             showinfo("Yes", "Changes updated.")
             self.selected_task.update(self.db, new_title, new_desc, completion_status)
             self.tree.delete(*self.tree.get_children())
@@ -204,7 +235,7 @@ class Page(Frame):
         # Error handling to ensure user enters in a task for an existing course and a description
         # less than 56 characters
         course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
-        if course_id is not None and len(self.description) <= 56:
+        if course_id is not None and len(self.description) <= 35:
             self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id)
             self.tree.insert("", "end", values=(self.add_task.task_id, self.title, self.description, self.add_task.completed, course_id))
             showinfo("Task Created", "Task creation success.")
