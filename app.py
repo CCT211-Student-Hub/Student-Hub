@@ -45,12 +45,13 @@ class App(Tk):
         page = self.pages[page_index]
         page.tkraise()
         if isinstance(page, Page):
+            page.edit_task_button.config(state=DISABLED)
+            page.delete_task_button.config(state=DISABLED)
             page.tree.delete(*page.tree.get_children())
             if isinstance(page, CoursePage):
                 page.populate_by_course(page.course)
             else:
                 page.populate_all_tasks()
-        print("changing pages:", page_index)
         
     def add_page(self, course):
         """Adding a new page and updating sidebar when course is created, takes a Course object as input"""
@@ -61,11 +62,9 @@ class App(Tk):
         new_course_page.grid(row=0, column=0, sticky="nsew")
 
         self.sidebar.update_pages(self.pages)
-        print(f"added new course: {course.course_name}")
 
     def delete_page(self, index):
         """Deletes a page by deleting the course and removing it from the menu"""
-        print("deleting page:", index)
         page = self.pages[index]
         if askyesno("Delete Course", f"Are you sure you want to delete course {page.course.course_name}?\n\nThis will also delete all tasks associated with this course."):
             page.course.delete(self.db)

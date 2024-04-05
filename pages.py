@@ -51,12 +51,9 @@ class Page(Frame):
         self.task_id = event.widget.selection()[0] # Obtaining task_id (first value in tuple)
         self.task_id_data = event.widget.item(self.task_id) # Obtaining data from selected task_id
         self.task_id_values = self.task_id_data["values"]
-        print("data selected by user")
-        print(self.task_id_values)
         
         # storing task information in task variable obtained from student hub database
         self.selected_task = Task.get_task(self.db, self.task_id)
-        print(self.selected_task)
         
         # switching state of edit button to normal if user selects a row in the treeview
         # state of button adapted from # adapted from https://www.geeksforgeeks.org/how-to-change-tkinter-button-state/
@@ -97,7 +94,6 @@ class Page(Frame):
         
         self.label = Label(self.add_task_frame, text="Add Task", font=self.title_font, anchor="center")
         self.label.grid(row=0, column=0, columnspan=2)
-        print("add task frame uploading...")
         
         # Entry forms for relevant data
         self.task_title = Label(self.add_task_frame, text="Title")
@@ -198,8 +194,6 @@ class Page(Frame):
         self.save_changes_btn.grid(row=10, column = 0)
         self.cancel = Button(self.edit_task_frame, text="Cancel", command=lambda: self.cancel_action(self.edit_task_frame), state=NORMAL)
         self.cancel.grid(row=10, column=1)
-        
-        print("edit task frame uploading...")
     
     def save_changes(self):
         """Asks user if they are certain of saving the changes"""
@@ -207,8 +201,7 @@ class Page(Frame):
         new_desc = self.edited_desc_entry.get()
         completion_status = bool(self.complete_var.get())
         new_priority = self.edited_priority_value.get()
-        
-        course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
+
         if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
             if len(new_desc) >= 52:
                 showerror("Description Error", "The description must be less than 52 characters.")
@@ -218,8 +211,8 @@ class Page(Frame):
                 self.tree.delete(self.task_id)
             else:
                 showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
-                self.selected_task.update(self.db, new_title, new_desc, completion_status, course_id, new_priority)
-                self.tree.insert("", "end", values=(new_title, new_desc, Task.get_task(self.db, course_id).completed, self.course_name, new_priority))
+                self.selected_task.update(self.db, new_title, new_desc, completion_status, priority=new_priority)
+                # self.tree.insert("", "end", values=(new_title, new_desc, Task.get_task(self.db, course_id).completed, self.course_name, new_priority))
             self.app.change_page(0)
             self.curr_frame.destroy()
         else:
@@ -240,13 +233,11 @@ class Page(Frame):
         self.description = self.task_desc_entry.get()
         self.course_name = self.task_course_selection.get()
         self.priority = self.task_priority_value.get()
-        print(len(self.description))
         
         # Error handling to ensure user enters in a task for an existing course and a description
         # less than 56 characters
-        course_id = Task.find_course_id_by_course_name(self.db, self.course_name)
-        if (len(self.description) <= 52) and (course_id is not None):
-            self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id, self.priority)
+        if len(self.description) <= 52:
+            self.add_task = Task.create_task(self.db, self.title, self.description, 0, self.selected_task.course_id, self.priority)
             self.tree.insert("", "end", values=(self.title, self.description, False, self.course_name, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)

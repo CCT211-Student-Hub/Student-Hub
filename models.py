@@ -46,8 +46,6 @@ class Task:
         Task.get_all_tasks() - Gets all tasks
         Task.get_tasks_by_course() - Gets all tasks of a given course
         Task.create_task() - Creates a new task
-        Task.find_task_id_by_task_title() - Gets task id from a task title
-        Task.get_task_completed_by_task_title() - Returns a bool of task completion status
     """
     task_id: int
     title: str
@@ -72,7 +70,7 @@ class Task:
         if course_id is None: course_id = self.course_id
         if priority is None: priority = self.priority
         cur = db.con.cursor()
-        cur.execute("UPDATE task SET title=?, description=?, completed=?, course_id=?, priority=? WHERE task_id=?;", (title, description, int(completed), course_id, self.task_id, priority))
+        cur.execute("UPDATE task SET title=?, description=?, completed=?, course_id=?, priority=? WHERE task_id=?;", (title, description, int(completed), course_id, priority, self.task_id))
         db.con.commit()
         self.title = title
         self.description = description
@@ -122,30 +120,6 @@ class Task:
         cur.execute("INSERT INTO task (title, description, completed, course_id, priority) VALUES (?, ?, ?, ?, ?);", (title, description, int(completed), course_id, priority))
         db.con.commit()
         return Task.get_task(db, cur.lastrowid)
-    
-    def find_course_id_by_course_name(db:Sqlite_Db, course_name: str):
-        """Retrieves the course id from a given course name"""
-        cur = db.con.cursor()
-        cur.execute("SELECT course_id FROM course WHERE course_name = ?;", (course_name, ))
-        result = cur.fetchone()
-        if result:
-            return result[0]
-        
-    def find_task_id_by_task_title(db:Sqlite_Db, course_title: str):
-        """Retrieves task id from given task title"""
-        cur = db.con.cursor()
-        cur.execute("SELECT task_id FROM task WHERE title = ?;", (course_title, ))
-        result = cur.fetchone()
-        if result:
-            return result[0]
-    
-    def get_task_completed_by_task_title(db:Sqlite_Db, course_title: str):
-        """Retrieves a boolean of task completion status by task title"""
-        cur = db.con.cursor()
-        cur.execute("SELECT completed FROM task WHERE title = ?;", (course_title, ))
-        result = cur.fetchone()
-        if result:
-            return result[0]
 
 class Course:
     """A model that represents a course
