@@ -167,7 +167,7 @@ class Page(Frame):
         self.edited_completion = Label(self.edit_task_frame, text="Completion")
         self.edited_completion.grid(row=3, column=0)
         self.complete_var = IntVar()
-        self.complete_var.set(self.task_id_values[2])
+        self.complete_var.set(int(self.selected_task.completed))
         self.edited_completion_entry = Checkbutton(self.edit_task_frame, variable=self.complete_var)
         self.edited_completion_entry.grid(row=3, column=1)
 
