@@ -231,14 +231,21 @@ class Page(Frame):
         # Obtaining user info    
         self.title = self.task_title_entry.get()
         self.description = self.task_desc_entry.get()
-        self.course_name = self.task_course_selection.get()
         self.priority = self.task_priority_value.get()
-        
+
+        course_id = -1
+        for course in Course.get_all_courses(self.app.db):
+            if course.course_name == self.task_course_selection.get():
+                course_id = course.course_id
+                break
         # Error handling to ensure user enters in a task for an existing course and a description
         # less than 56 characters
+        if course_id == -1:
+            showerror("Error", "Invalid course selected.")
+            return
         if len(self.description) <= 52:
-            self.add_task = Task.create_task(self.db, self.title, self.description, 0, self.selected_task.course_id, self.priority)
-            self.tree.insert("", "end", values=(self.title, self.description, False, self.course_name, self.priority))
+            self.add_task = Task.create_task(self.db, self.title, self.description, 0, course_id, self.priority)
+            # self.tree.insert("", "end", values=(self.title, self.description, False, self.course_name, self.priority))
             showinfo("Task Created", "Task creation success.")
             self.app.change_page(0)
             self.curr_frame.destroy()
