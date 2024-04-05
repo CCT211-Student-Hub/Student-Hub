@@ -212,6 +212,10 @@ class Page(Frame):
         if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
             if len(new_desc) >= 52:
                 showerror("Description Error", "The description must be less than 52 characters.")
+            elif completion_status == True:
+                showinfo("Completed Task", "Task marked as completed. Now deleting from treeview.")
+                self.selected_task.delete(self.db)
+                self.tree.delete(self.task_id)
             else:
                 showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
                 self.selected_task.update(self.db, new_title, new_desc, completion_status, course_id, new_priority)
