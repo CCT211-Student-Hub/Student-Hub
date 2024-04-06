@@ -41,22 +41,23 @@ class Page(Frame):
         self.tree.column("#3", stretch=NO, minwidth=0, width=75)
         self.tree.column("#4", stretch=NO, minwidth=0, width=100)
         self.tree.column("#5", stretch=NO, minwidth=0, width=75)
-        self.tree.bind('<<TreeviewSelect>>', self.data_selected) # adapted from Bryan Oakley on https://stackoverflow.com/questions/61404261/tkinter-selecting-an-item-from-a-treeview-using-single-click-instead-of-double
+        self.tree.bind('<<TreeviewSelect>>', self.data_selected) # Adapted from Bryan Oakley on https://stackoverflow.com/questions/61404261/tkinter-selecting-an-item-from-a-treeview-using-single-click-instead-of-double
         self.tree.grid(row=2, column=0, sticky="nsew")
     
     def data_selected(self, event):
         """Obtain task information from the row selection. Includes task_id, title, description, completed, and course_id"""
         if not event.widget.selection():
             return
-        self.task_id = event.widget.selection()[0] # Obtaining task_id (first value in tuple)
+        
+        self.task_id = event.widget.selection()[0] # Obtaining task_id from user selection in treeview (first value in tuple)
         self.task_id_data = event.widget.item(self.task_id) # Obtaining data from selected task_id
         self.task_id_values = self.task_id_data["values"]
         
-        # storing task information in task variable obtained from student hub database
+        # Storing task information in task variable obtained from student hub database
         self.selected_task = Task.get_task(self.db, self.task_id)
         
-        # switching state of edit button to normal if user selects a row in the treeview
-        # state of button adapted from # adapted from https://www.geeksforgeeks.org/how-to-change-tkinter-button-state/
+        # Switching state of edit button to normal if user selects a row in the treeview
+        # State of button adapted from # adapted from https://www.geeksforgeeks.org/how-to-change-tkinter-button-state/
         if self.task_id:
             self.edit_task_button.config(state=NORMAL)
             self.delete_task_button.config(state=NORMAL)
@@ -190,6 +191,7 @@ class Page(Frame):
         self.task_priority5 = Radiobutton(self.edit_task_frame, text="5", variable=self.edited_priority_value, value=5)
         self.task_priority5.grid(row=9, column=1)
         
+        # Adding buttons to save/cancel actions
         self.save_changes_btn = Button(self.edit_task_frame, text="Save", command = self.save_changes, state=NORMAL)
         self.save_changes_btn.grid(row=10, column = 0)
         self.cancel = Button(self.edit_task_frame, text="Cancel", command=lambda: self.cancel_action(self.edit_task_frame), state=NORMAL)
@@ -197,29 +199,29 @@ class Page(Frame):
     
     def save_changes(self):
         """Asks user if they are certain of saving the changes"""
+        # Obtaining edited values
         new_title = self.edited_title_entry.get()
         new_desc = self.edited_desc_entry.get()
         completion_status = bool(self.complete_var.get())
         new_priority = self.edited_priority_value.get()
-
+        
         if askyesno("Verify", "Are you sure you want to save this task? You cannot undo this action."):
-            if len(new_desc) >= 52:
+            if len(new_desc) >= 52: # Ensuring user enters a description less than 52 characters
                 showerror("Description Error", "The description must be less than 52 characters.")
-            elif completion_status == True:
+            elif completion_status == True: # If the task is complete, delete
                 showinfo("Completed Task", "Task marked as completed. Now deleting from treeview.")
                 self.selected_task.delete(self.db)
                 self.tree.delete(self.task_id)
             else:
                 showinfo("Yes", "Changes updated. Redirecting you back to course overview.")
                 self.selected_task.update(self.db, new_title, new_desc, completion_status, priority=new_priority)
-                # self.tree.insert("", "end", values=(new_title, new_desc, Task.get_task(self.db, course_id).completed, self.course_name, new_priority))
             self.app.change_page(0)
             self.curr_frame.destroy()
         else:
             showinfo("No", "Task has NOT been deleted.")
     
     def delete_task_hander(self):
-        """Asks user if they are certain of deleting the task"""
+        """Asks user if they are certain of deleting the task. If yes, task is deleted from database and treeview."""
         if askyesno("Verify", "Are you sure you want to delete this task? You cannot undo this action."):
             showinfo("Yes", "Task Deleted.")
             self.selected_task.delete(self.db)
@@ -238,8 +240,8 @@ class Page(Frame):
             if course.course_name == self.task_course_selection.get():
                 course_id = course.course_id
                 break
-        # Error handling to ensure user enters in a task for an existing course and a description
-        # less than 56 characters
+            
+        # Error handling to ensure user enters in a description less than 56 characters
         if course_id == -1:
             showerror("Error", "Invalid course selected.")
             return

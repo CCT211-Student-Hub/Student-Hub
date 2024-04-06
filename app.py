@@ -33,7 +33,7 @@ class App(Tk):
         for page in self.pages:
             page.grid(row=0, column=0, sticky="nsew")
 
-        self.sidebar = Sidebar(self, self.pages) # changed bg colours
+        self.sidebar = Sidebar(self, self.pages)
         self.sidebar.pack(side=LEFT, fill="y")
 
         self.page_frame.pack(side=RIGHT, expand=True, fill="both")
@@ -42,6 +42,7 @@ class App(Tk):
         self.create_menu()
 
     def change_page(self, page_index):
+        """Changes page when user clicks on a course/overview page."""
         page = self.pages[page_index]
         page.tkraise()
         if isinstance(page, CoursePage) or isinstance(page, OverviewPage):
@@ -89,7 +90,7 @@ class App(Tk):
     def user_quit(self):
         """Prompting users with a warning message if they decide to quit the application"""
         if askyesno("Verify", "Are you sure you want to exit the application?"):
-            showwarning("Yes", "Goodbye. Closing Student Hub.")
+            showinfo("Yes", "Goodbye. Closing Student Hub.")
             exit()
         else:
             showinfo("No", "Redirecting you back to Student Hub.")
